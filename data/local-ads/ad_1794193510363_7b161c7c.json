@@ -1,0 +1,19 @@
+{
+  "id": "ad_1794193510363_7b161c7c",
+  "title": "Ventilador Mondial 40cm",
+  "description": "Super potente, ideal para o verão de Peruíbe.",
+  "price": 90,
+  "priceType": "fixed",
+  "category": "casa_moveis",
+  "bairro": "Centro",
+  "sellerName": "Rita",
+  "whatsapp": "13991234567",
+  "photos": [
+    "/logo.jpg"
+  ],
+  "status": "active",
+  "pinHash": "be41b7f1fa56ba2b0582910053c86cf6ee7e311efc51300220df0918bb9a287b",
+  "expiresAt": "2026-12-09T03:05:10.363Z",
+  "createdAt": "2026-11-09T03:05:10.363Z",
+  "updatedAt": "2026-11-09T03:05:10.367Z"
+}
