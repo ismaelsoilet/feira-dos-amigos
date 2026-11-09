@@ -181,8 +181,8 @@ export async function getAdById(id: string): Promise<Ad | null> {
   // If not on local disk, check Vercel Blob
   if (isVercelBlobConfigured()) {
     try {
-      const { blobs } = await list({ prefix: `ads/${id}/ad.json`, limit: 1 });
-      const adBlob = blobs.find(b => b.pathname === `ads/${id}/ad.json`);
+      const { blobs } = await list({ prefix: `ads/${id}/`, limit: 5 });
+      const adBlob = blobs.find(b => b.pathname.replace(/^\//, '') === `ads/${id}/ad.json`);
       if (adBlob && adBlob.downloadUrl) {
         const res = await fetch(adBlob.downloadUrl, { cache: 'no-store' });
         if (res.ok) {
@@ -199,6 +199,55 @@ export async function getAdById(id: string): Promise<Ad | null> {
     } catch (e) {
       console.warn('Vercel Blob fetch error for ad:', e);
     }
+  }
+
+  // 3. Fallback to Master Catalog Index (Resilient Zero-404 Recovery)
+  try {
+    const index = await getCatalogIndex();
+    const summary = index.find(item => item.id === id);
+    if (summary) {
+      const recoveredAd: Ad = {
+        id: summary.id,
+        title: summary.title,
+        description: summary.description,
+        price: summary.price,
+        priceType: summary.priceType,
+        category: summary.category,
+        bairro: summary.bairro,
+        sellerName: summary.sellerName,
+        whatsapp: summary.whatsapp,
+        photos: [summary.thumbnail || '/logo.jpg'],
+        status: summary.status,
+        pinHash: '',
+        expiresAt: summary.expiresAt,
+        createdAt: summary.createdAt,
+        updatedAt: summary.createdAt,
+        views: summary.views || 0,
+        whatsappClicks: summary.whatsappClicks || 0,
+      };
+
+      try {
+        fs.writeFileSync(localFile, JSON.stringify(recoveredAd, null, 2));
+      } catch (err) {
+        console.warn('Local cache write error:', err);
+      }
+
+      if (isVercelBlobConfigured()) {
+        try {
+          await put(`ads/${id}/ad.json`, JSON.stringify(recoveredAd, null, 2), {
+            access: 'public',
+            addRandomSuffix: false,
+            contentType: 'application/json',
+          });
+        } catch (e) {
+          console.warn('Vercel Blob recover put error:', e);
+        }
+      }
+
+      return recoveredAd;
+    }
+  } catch (err) {
+    console.warn('Error reading from catalog index fallback:', err);
   }
 
   return null;
@@ -265,8 +314,12 @@ export async function updateAdStatus(
     return { success: false, error: 'Anúncio não encontrado.' };
   }
 
-  if (ad.pinHash !== hashPin(pin)) {
-    return { success: false, error: 'PIN de segurança incorreto.' };
+  if (ad.pinHash) {
+    if (ad.pinHash !== hashPin(pin)) {
+      return { success: false, error: 'PIN de segurança incorreto.' };
+    }
+  } else if (pin) {
+    ad.pinHash = hashPin(pin);
   }
 
   ad.status = status;
@@ -314,8 +367,12 @@ export async function updateAd(
     return { success: false, error: 'Anúncio não encontrado.' };
   }
 
-  if (!input.pin || ad.pinHash !== hashPin(input.pin)) {
-    return { success: false, error: 'PIN de segurança incorreto.' };
+  if (ad.pinHash) {
+    if (!input.pin || ad.pinHash !== hashPin(input.pin)) {
+      return { success: false, error: 'PIN de segurança incorreto.' };
+    }
+  } else if (input.pin) {
+    ad.pinHash = hashPin(input.pin);
   }
 
   const now = new Date().toISOString();
@@ -366,6 +423,38 @@ export async function updateAd(
   return { success: true, ad };
 }
 
+export async function verifyAdPin(
+  id: string,
+  pin: string
+): Promise<{ valid: boolean; error?: string; ad?: Ad }> {
+  const ad = await getAdById(id);
+  if (!ad) {
+    return { valid: false, error: 'Anúncio não encontrado.' };
+  }
+
+  const cleanPin = pin.trim().toUpperCase();
+  if (!cleanPin) {
+    return { valid: false, error: 'Informe o PIN de segurança.' };
+  }
+
+  if (ad.pinHash) {
+    if (ad.pinHash !== hashPin(cleanPin)) {
+      return { valid: false, error: 'PIN incorreto. Verifique os 6 caracteres.' };
+    }
+  } else {
+    ad.pinHash = hashPin(cleanPin);
+    ensureLocalDirs();
+    const localFile = path.join(LOCAL_DATA_DIR, `${id}.json`);
+    try {
+      fs.writeFileSync(localFile, JSON.stringify(ad, null, 2));
+    } catch (e) {
+      console.warn('Local update error:', e);
+    }
+  }
+
+  return { valid: true, ad };
+}
+
 export async function deleteAd(
   id: string,
   pin: string
@@ -375,8 +464,12 @@ export async function deleteAd(
     return { success: false, error: 'Anúncio não encontrado.' };
   }
 
-  if (ad.pinHash !== hashPin(pin)) {
-    return { success: false, error: 'PIN de segurança incorreto.' };
+  if (ad.pinHash) {
+    if (ad.pinHash !== hashPin(pin)) {
+      return { success: false, error: 'PIN de segurança incorreto.' };
+    }
+  } else if (pin) {
+    ad.pinHash = hashPin(pin);
   }
 
   // Delete local file

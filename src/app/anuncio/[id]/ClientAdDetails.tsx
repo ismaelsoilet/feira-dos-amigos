@@ -17,7 +17,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { Ad } from '@/types/ad';
-import { formatPrice, buildWhatsAppLink } from '@/components/AdCard';
+import { formatPrice, buildWhatsAppLink, getAdShareUrl } from '@/components/AdCard';
 import { ManageAdModal } from '@/components/ManageAdModal';
 import { isFavorite, toggleFavorite } from '@/lib/favorites';
 import { QRCodeModal } from '@/components/QRCodeModal';
@@ -98,21 +98,26 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
   });
 
   const handleShare = async () => {
+    const url = getAdShareUrl(ad.id);
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
           title: ad.title,
           text: `Confira este anúncio na Feira dos Amigos (Peruíbe): ${ad.title}`,
-          url: window.location.href,
+          url,
         });
         return;
       } catch (err) {
         console.warn('Navigator share error, falling back to clipboard:', err);
       }
     }
-    navigator.clipboard.writeText(window.location.href);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    } catch (err) {
+      console.warn('Clipboard copy error:', err);
+    }
   };
 
   return (
@@ -358,7 +363,7 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
         isOpen={isQrModalOpen}
         onClose={() => setIsQrModalOpen(false)}
         title={ad.title}
-        url={typeof window !== 'undefined' ? window.location.href : ''}
+        url={getAdShareUrl(ad.id)}
       />
 
       {/* Manage & Edit Modal */}

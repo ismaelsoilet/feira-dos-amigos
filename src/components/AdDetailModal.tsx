@@ -22,7 +22,7 @@ import {
   Check,
 } from 'lucide-react';
 import { AdSummary, Ad } from '@/types/ad';
-import { formatPrice, buildWhatsAppLink } from './AdCard';
+import { formatPrice, buildWhatsAppLink, getAdShareUrl } from './AdCard';
 import { HighlightText } from './HighlightText';
 import { isFavorite, toggleFavorite } from '@/lib/favorites';
 import { QRCodeModal } from './QRCodeModal';
@@ -147,7 +147,7 @@ export function AdDetailModal({
   };
 
   const handleShare = async () => {
-    const url = `${window.location.origin}/anuncio/${ad.id}`;
+    const url = getAdShareUrl(ad.id);
     if (navigator.share) {
       try {
         await navigator.share({
@@ -471,7 +471,7 @@ export function AdDetailModal({
         isOpen={showQrModal}
         onClose={() => setShowQrModal(false)}
         title={ad.title}
-        url={`${typeof window !== 'undefined' ? window.location.origin : ''}/anuncio/${ad.id}`}
+        url={getAdShareUrl(ad.id)}
       />
     </>
   );

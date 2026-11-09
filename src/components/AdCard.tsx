@@ -27,6 +27,13 @@ export function buildWhatsAppLink(ad: AdSummary): string {
   return `https://wa.me/${fullPhone}?text=${encodeURIComponent(text)}`;
 }
 
+export function getAdShareUrl(id: string): string {
+  if (typeof window !== 'undefined' && window.location.origin) {
+    return `${window.location.origin}/anuncio/${id}`;
+  }
+  return `https://feiradosamigos.vercel.app/anuncio/${id}`;
+}
+
 interface AdCardProps {
   ad: AdSummary;
   searchQuery?: string;
@@ -91,9 +98,7 @@ export function AdCard({ ad, searchQuery = '', onAdClick, onManageClick }: AdCar
     }
   })();
 
-  const adShareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/anuncio/${ad.id}`
-    : `https://feiradosamigos.vercel.app/anuncio/${ad.id}`;
+  const adShareUrl = getAdShareUrl(ad.id);
 
   const imageSrc = ad.thumbnail || '/logo.jpg';
 
