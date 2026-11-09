@@ -3,7 +3,7 @@ interface RateLimitRecord {
 }
 
 const rateLimitMap = new Map<string, RateLimitRecord>();
-const MAX_REQUESTS_PER_HOUR = 15;
+const MAX_REQUESTS_PER_HOUR = 30;
 const ONE_HOUR_MS = 60 * 60 * 1000;
 
 export function checkRateLimit(ip: string): { allowed: boolean; remaining: number; error?: string } {
