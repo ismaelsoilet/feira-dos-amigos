@@ -21,7 +21,7 @@ import {
   ShieldAlert,
   Check,
 } from 'lucide-react';
-import { AdSummary, Ad, AdPriceType } from '@/types/ad';
+import { AdSummary, Ad } from '@/types/ad';
 import { formatPrice, buildWhatsAppLink } from './AdCard';
 import { HighlightText } from './HighlightText';
 import { isFavorite, toggleFavorite } from '@/lib/favorites';
@@ -156,8 +156,8 @@ export function AdDetailModal({
           url,
         });
         return;
-      } catch (err) {
-        // Ignored if cancelled
+      } catch {
+        // Ignored if cancelled by user
       }
     }
 
@@ -182,36 +182,36 @@ export function AdDetailModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 overflow-y-auto sm:overflow-hidden bg-purple-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-purple-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
         {/* Backdrop click dismiss */}
         <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
 
-        {/* Modal Window: Bottom Sheet on Mobile, Centered Dialog on Desktop */}
+        {/* Modal Window: Bottom Sheet on Mobile, Centered Card on Desktop */}
         <div
-          className="relative z-10 w-full max-w-4xl bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-purple-100 flex flex-col md:flex-row overflow-hidden max-h-[92vh] sm:max-h-[88vh] animate-in fade-in zoom-in-95 duration-200"
+          className="relative z-10 w-full max-w-4xl bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-purple-100 flex flex-col md:flex-row overflow-hidden max-h-[94vh] sm:max-h-[88vh] animate-in fade-in zoom-in-95 duration-200"
           onClick={e => e.stopPropagation()}
         >
           {/* Mobile Drag Indicator Bar */}
-          <div className="sm:hidden w-12 h-1.5 bg-slate-300 rounded-full mx-auto my-2.5 shrink-0" />
+          <div className="sm:hidden w-12 h-1.5 bg-slate-300 rounded-full mx-auto my-2 shrink-0" />
 
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 z-30 p-2 rounded-full bg-white/90 hover:bg-white text-slate-700 hover:text-purple-950 shadow-md transition-all"
+            className="absolute top-3 right-3 z-30 p-2 rounded-full bg-white/95 hover:bg-white text-slate-700 hover:text-purple-950 shadow-md border border-slate-200 transition-all active:scale-95"
             aria-label="Fechar"
           >
             <X className="w-5 h-5" />
           </button>
 
-          {/* Left Column: Smart Photo Gallery with Aspect Ratio Container & Ambient Blur */}
+          {/* Left Column: Responsive Photo Gallery with Ambient Blur */}
           <div className="md:w-1/2 bg-slate-900 shrink-0 flex flex-col justify-between relative select-none">
-            {/* Main Active Photo Container */}
+            {/* Main Photo Container */}
             <div
-              className="relative aspect-square sm:aspect-4/3 md:aspect-square w-full overflow-hidden bg-slate-950 flex items-center justify-center cursor-grab active:cursor-grabbing"
+              className="relative aspect-4/3 sm:aspect-square md:aspect-auto md:flex-1 md:min-h-[380px] w-full overflow-hidden bg-slate-950 flex items-center justify-center cursor-grab active:cursor-grabbing"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
-              {/* Ambient Blurred Background (Ensures non-square photos look seamless) */}
+              {/* Ambient Blurred Background (renders non-square photos seamlessly) */}
               <div className="absolute inset-0 overflow-hidden">
                 <Image
                   src={currentPhoto}
@@ -222,7 +222,7 @@ export function AdDetailModal({
                 />
               </div>
 
-              {/* Crisp Foreground Image (object-contain displays 100% of the image uncropped) */}
+              {/* Crisp Foreground Image (object-contain ensures zero product clipping) */}
               <Image
                 src={currentPhoto}
                 alt={ad.title}
@@ -241,7 +241,7 @@ export function AdDetailModal({
                 </div>
               )}
 
-              {/* Top Tags: NOVO & Counter */}
+              {/* Top Tags: NOVO & Photo Counter */}
               <div className="absolute top-3 left-3 z-20 flex items-center gap-2">
                 {isNew && !isSold && (
                   <span className="px-2.5 py-1 rounded-full text-xs font-black bg-gradient-to-r from-emerald-500 to-lime-500 text-white shadow-md flex items-center gap-1">
@@ -279,7 +279,7 @@ export function AdDetailModal({
 
             {/* Thumbnail Strip (if multiple photos) */}
             {photos.length > 1 && (
-              <div className="p-2.5 bg-slate-950/90 border-t border-white/10 flex gap-2 overflow-x-auto scrollbar-none z-10">
+              <div className="p-2.5 bg-slate-950/90 border-t border-white/10 flex gap-2 overflow-x-auto scrollbar-none z-10 shrink-0">
                 {photos.map((img, idx) => (
                   <button
                     key={idx}
@@ -297,11 +297,11 @@ export function AdDetailModal({
             )}
           </div>
 
-          {/* Right Column: Full Details & Interactive Actions */}
+          {/* Right Column: Full Details & Fully Responsive Actions */}
           <div className="md:w-1/2 p-5 sm:p-6 overflow-y-auto flex flex-col justify-between">
-            <div>
-              {/* Category & Location Badges */}
-              <div className="flex flex-wrap items-center gap-2 mb-3">
+            <div className="space-y-4">
+              {/* Category & Location Badges (with padding right for close button) */}
+              <div className="flex flex-wrap items-center gap-2 pr-10">
                 <span className="capitalize px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-800 font-bold text-xs flex items-center gap-1.5">
                   <Tag className="w-3.5 h-3.5 text-purple-600" />
                   {ad.category.replace('_', ' ')}
@@ -318,7 +318,7 @@ export function AdDetailModal({
               </h2>
 
               {/* Price & PriceType */}
-              <div className="mt-3 flex items-baseline gap-2">
+              <div className="flex items-baseline gap-2">
                 <span className="text-2xl sm:text-3xl font-black text-purple-900">
                   {formatPrice(ad.price, ad.priceType)}
                 </span>
@@ -330,7 +330,7 @@ export function AdDetailModal({
               </div>
 
               {/* Seller and Stats Line */}
-              <div className="mt-4 p-3 rounded-2xl bg-purple-50/60 border border-purple-100 flex items-center justify-between text-xs text-slate-600">
+              <div className="p-3 rounded-2xl bg-purple-50/60 border border-purple-100 flex items-center justify-between text-xs text-slate-600">
                 <div>
                   <p className="font-bold text-purple-950">Vendedor: {ad.sellerName}</p>
                   <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
@@ -349,11 +349,11 @@ export function AdDetailModal({
               </div>
 
               {/* Description Section */}
-              <div className="mt-4">
+              <div>
                 <h3 className="text-xs font-bold text-purple-900 uppercase tracking-wider mb-1.5">
                   Descrição do Item
                 </h3>
-                <div className="text-sm text-slate-700 whitespace-pre-line leading-relaxed max-h-40 overflow-y-auto p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="text-sm text-slate-700 whitespace-pre-line leading-relaxed max-h-36 overflow-y-auto p-3 rounded-xl bg-slate-50 border border-slate-100">
                   <HighlightText
                     text={fullAd?.description || ad.description}
                     query={searchQuery}
@@ -362,7 +362,7 @@ export function AdDetailModal({
               </div>
 
               {/* Security Reminder */}
-              <div className="mt-4 p-2.5 rounded-xl bg-amber-50 border border-amber-200/80 text-[11px] text-amber-900 flex items-start gap-2">
+              <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200/80 text-[11px] text-amber-900 flex items-start gap-2">
                 <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <span>
                   <strong>Dica de Segurança:</strong> Encontre o vendedor em locais públicos de Peruíbe
@@ -371,8 +371,8 @@ export function AdDetailModal({
               </div>
             </div>
 
-            {/* Bottom Actions Area */}
-            <div className="mt-6 pt-4 border-t border-purple-100 space-y-3">
+            {/* Bottom Actions Area: Completely Responsive, Never Cut Off */}
+            <div className="mt-6 pt-4 border-t border-purple-100 space-y-2.5 pb-2 sm:pb-0">
               {/* WhatsApp Main CTA */}
               <a
                 href={whatsappUrl}
@@ -385,82 +385,81 @@ export function AdDetailModal({
                     : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30'
                 }`}
               >
-                <MessageCircle className="w-5 h-5 fill-current" />
-                <span>Conversar no WhatsApp com {ad.sellerName}</span>
+                <MessageCircle className="w-5 h-5 fill-current shrink-0" />
+                <span className="truncate">Conversar no WhatsApp com {ad.sellerName}</span>
               </a>
 
-              {/* Quick Actions Row */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  {/* Favorite Button */}
-                  <button
-                    onClick={handleToggleFav}
-                    className={`p-2.5 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-semibold ${
-                      isFav
-                        ? 'bg-rose-50 border-rose-200 text-rose-600'
-                        : 'bg-purple-50/60 border-purple-200 text-slate-600 hover:text-rose-600 hover:bg-rose-50'
-                    }`}
-                    title={isFav ? 'Remover dos favoritos' : 'Salvar nos favoritos'}
-                  >
-                    <Heart className={`w-4 h-4 ${isFav ? 'fill-current text-rose-500' : ''}`} />
-                    <span className="hidden sm:inline">{isFav ? 'Favorito' : 'Favoritar'}</span>
-                  </button>
+              {/* Secondary Actions Grid: 4 Equal-Sized Clean Responsive Columns */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {/* 1. Favorite Button */}
+                <button
+                  onClick={handleToggleFav}
+                  className={`py-2 px-2.5 rounded-xl border transition-all flex items-center justify-center gap-1.5 text-xs font-semibold ${
+                    isFav
+                      ? 'bg-rose-50 border-rose-200 text-rose-600'
+                      : 'bg-purple-50/60 border-purple-200 text-slate-700 hover:text-rose-600 hover:bg-rose-50'
+                  }`}
+                  title={isFav ? 'Remover dos favoritos' : 'Salvar nos favoritos'}
+                >
+                  <Heart className={`w-4 h-4 shrink-0 ${isFav ? 'fill-current text-rose-500' : ''}`} />
+                  <span className="truncate">{isFav ? 'Salvo' : 'Favoritar'}</span>
+                </button>
 
-                  {/* Share Button */}
-                  <button
-                    onClick={handleShare}
-                    className="p-2.5 rounded-xl border border-purple-200 bg-purple-50/60 hover:bg-purple-100 text-purple-900 transition-all flex items-center gap-1.5 text-xs font-semibold"
-                    title="Compartilhar anúncio"
-                  >
-                    {copiedLink ? (
-                      <>
-                        <Check className="w-4 h-4 text-emerald-600" />
-                        <span className="text-emerald-700">Copiado!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Share2 className="w-4 h-4 text-purple-600" />
-                        <span className="hidden sm:inline">Compartilhar</span>
-                      </>
-                    )}
-                  </button>
-
-                  {/* Stand QR Code */}
-                  <button
-                    onClick={() => setShowQrModal(true)}
-                    className="p-2.5 rounded-xl border border-purple-200 bg-purple-50/60 hover:bg-purple-100 text-purple-900 transition-all flex items-center gap-1.5 text-xs font-semibold"
-                    title="Gerar QR Code da Barraca"
-                  >
-                    <QrCode className="w-4 h-4 text-purple-600" />
-                    <span className="hidden sm:inline">QR Barraca</span>
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {/* Manage / Edit with PIN */}
-                  {onManageClick && (
-                    <button
-                      onClick={() => {
-                        onClose();
-                        onManageClick(ad);
-                      }}
-                      className="p-2.5 rounded-xl border border-purple-200 bg-purple-50/60 hover:bg-purple-100 text-purple-900 transition-all flex items-center gap-1.5 text-xs font-bold"
-                      title="Gerenciar / Editar este anúncio com PIN"
-                    >
-                      <ShieldCheck className="w-4 h-4 text-purple-600" />
-                      <span>Editar</span>
-                    </button>
+                {/* 2. Share Button */}
+                <button
+                  onClick={handleShare}
+                  className="py-2 px-2.5 rounded-xl border border-purple-200 bg-purple-50/60 hover:bg-purple-100 text-purple-900 transition-all flex items-center justify-center gap-1.5 text-xs font-semibold"
+                  title="Compartilhar anúncio"
+                >
+                  {copiedLink ? (
+                    <>
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span className="text-emerald-700 font-bold truncate">Copiado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-4 h-4 text-purple-600 shrink-0" />
+                      <span className="truncate">Compartilhar</span>
+                    </>
                   )}
+                </button>
 
-                  {/* Full Page Link */}
-                  <Link
-                    href={`/anuncio/${ad.id}`}
-                    className="p-2.5 rounded-xl border border-purple-200 bg-purple-50/60 hover:bg-purple-100 text-purple-900 transition-all flex items-center gap-1.5 text-xs font-bold"
-                    title="Abrir em página dedicada"
+                {/* 3. Stand QR Code */}
+                <button
+                  onClick={() => setShowQrModal(true)}
+                  className="py-2 px-2.5 rounded-xl border border-purple-200 bg-purple-50/60 hover:bg-purple-100 text-purple-900 transition-all flex items-center justify-center gap-1.5 text-xs font-semibold"
+                  title="Gerar QR Code da Barraca"
+                >
+                  <QrCode className="w-4 h-4 text-purple-600 shrink-0" />
+                  <span className="truncate">QR Barraca</span>
+                </button>
+
+                {/* 4. Manage / Edit with PIN */}
+                {onManageClick && (
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onManageClick(ad);
+                    }}
+                    className="py-2 px-2.5 rounded-xl border border-purple-200 bg-purple-50/60 hover:bg-purple-100 text-purple-900 transition-all flex items-center justify-center gap-1.5 text-xs font-bold"
+                    title="Gerenciar / Editar este anúncio com PIN"
                   >
-                    <ExternalLink className="w-4 h-4 text-purple-600" />
-                  </Link>
-                </div>
+                    <ShieldCheck className="w-4 h-4 text-purple-600 shrink-0" />
+                    <span className="truncate">Editar</span>
+                  </button>
+                )}
+              </div>
+
+              {/* 5. Full Page Link */}
+              <div className="pt-1 text-center">
+                <Link
+                  href={`/anuncio/${ad.id}`}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-700 hover:text-purple-950 hover:underline transition-colors py-1 px-3"
+                  title="Abrir em página dedicada com link permanente"
+                >
+                  <span>Abrir página cheia do anúncio</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
               </div>
             </div>
           </div>
