@@ -1,0 +1,18 @@
+[
+  {
+    "id": "ad_1794192846787_e362f2e1",
+    "title": "Bicicleta Caloi Aro 29 em Peruíbe",
+    "description": "Bicicleta em perfeito estado, pouco usada na praia.",
+    "price": 650,
+    "priceType": "fixed",
+    "category": "veiculos",
+    "bairro": "Centro",
+    "sellerName": "Carlos Silva",
+    "whatsapp": "13997123456",
+    "thumbnail": "data:image/webp;base64,UklGRkAAAABXRUJQVlA4IDQAAADwAQCdASoBAAEAAQAcJaACdLoAAP7/2QAA",
+    "photosCount": 1,
+    "status": "active",
+    "expiresAt": "2026-12-09T02:54:06.787Z",
+    "createdAt": "2026-11-09T02:54:06.787Z"
+  }
+]
