@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { put, del, list } from '@vercel/blob';
-import { Ad, AdSummary, CreateAdInput, AdFilters, CommunityStats } from '../types/ad';
+import { Ad, AdSummary, CreateAdInput, UpdateAdInput, AdFilters, CommunityStats } from '../types/ad';
 
 // In serverless environments (like Vercel), only /tmp is writable
 const BASE_DATA_PATH = process.env.VERCEL
@@ -303,6 +303,67 @@ export async function updateAdStatus(
   }
 
   return { success: true };
+}
+
+export async function updateAd(
+  id: string,
+  input: UpdateAdInput
+): Promise<{ success: boolean; error?: string; ad?: Ad }> {
+  const ad = await getAdById(id);
+  if (!ad) {
+    return { success: false, error: 'Anúncio não encontrado.' };
+  }
+
+  if (!input.pin || ad.pinHash !== hashPin(input.pin)) {
+    return { success: false, error: 'PIN de segurança incorreto.' };
+  }
+
+  const now = new Date().toISOString();
+
+  if (input.title !== undefined) ad.title = input.title.trim();
+  if (input.description !== undefined) ad.description = input.description.trim();
+  if (input.price !== undefined) ad.price = Number(input.price) || 0;
+  if (input.priceType !== undefined) ad.priceType = input.priceType;
+  if (input.category !== undefined) ad.category = input.category;
+  if (input.bairro !== undefined) ad.bairro = input.bairro.trim();
+  if (input.sellerName !== undefined) ad.sellerName = input.sellerName.trim();
+  if (input.whatsapp !== undefined) ad.whatsapp = input.whatsapp.replace(/\D/g, '');
+  if (input.phone !== undefined) ad.phone = input.phone ? input.phone.replace(/\D/g, '') : undefined;
+  if (input.photos !== undefined && input.photos.length > 0) ad.photos = input.photos;
+  if (input.status !== undefined) ad.status = input.status;
+  ad.updatedAt = now;
+
+  // 1. Save local
+  ensureLocalDirs();
+  const localFile = path.join(LOCAL_DATA_DIR, `${id}.json`);
+  try {
+    fs.writeFileSync(localFile, JSON.stringify(ad, null, 2));
+  } catch (err) {
+    console.warn(`Local update ad error for ${id}:`, err);
+  }
+
+  // 2. Save Blob if configured
+  if (isVercelBlobConfigured()) {
+    try {
+      await put(`ads/${id}/ad.json`, JSON.stringify(ad, null, 2), {
+        access: 'public',
+        addRandomSuffix: false,
+        contentType: 'application/json',
+      });
+    } catch (err) {
+      console.warn(`Blob update ad error for ${id}:`, err);
+    }
+  }
+
+  // 3. Update master catalog index
+  const index = await getCatalogIndex();
+  const itemIndex = index.findIndex(a => a.id === id);
+  if (itemIndex !== -1) {
+    index[itemIndex] = toSummary(ad);
+    await syncCatalogIndex(index);
+  }
+
+  return { success: true, ad };
 }
 
 export async function deleteAd(

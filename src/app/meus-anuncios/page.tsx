@@ -182,6 +182,13 @@ export default function MeusAnunciosPage() {
           onStatusChanged={newStatus => {
             setAdStatuses(prev => ({ ...prev, [selectedAdForManage.id]: newStatus }));
           }}
+          onAdUpdated={updatedAd => {
+            setSavedAds(prev =>
+              prev.map(item =>
+                item.id === selectedAdForManage.id ? { ...item, title: updatedAd.title } : item
+              )
+            );
+          }}
           onDeleted={() => handleDeleted(selectedAdForManage.id)}
         />
       )}

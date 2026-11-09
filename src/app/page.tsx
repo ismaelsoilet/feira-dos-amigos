@@ -336,7 +336,7 @@ export default function HomePage() {
         }}
       />
 
-      {/* Manage Ad Modal */}
+      {/* Manage & Edit Ad Modal */}
       {selectedAdForManage && (
         <ManageAdModal
           isOpen={true}
@@ -347,6 +347,25 @@ export default function HomePage() {
           onStatusChanged={newStatus => {
             setAds(prev =>
               prev.map(a => (a.id === selectedAdForManage.id ? { ...a, status: newStatus } : a))
+            );
+          }}
+          onAdUpdated={updatedAd => {
+            setAds(prev =>
+              prev.map(a =>
+                a.id === selectedAdForManage.id
+                  ? {
+                      ...a,
+                      title: updatedAd.title,
+                      description: updatedAd.description,
+                      price: updatedAd.price,
+                      priceType: updatedAd.priceType,
+                      category: updatedAd.category,
+                      bairro: updatedAd.bairro,
+                      sellerName: updatedAd.sellerName,
+                      whatsapp: updatedAd.whatsapp,
+                    }
+                  : a
+              )
             );
           }}
           onDeleted={() => {

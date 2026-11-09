@@ -67,6 +67,21 @@ export interface CreateAdInput {
   durationDays?: number;
 }
 
+export interface UpdateAdInput {
+  pin: string;
+  title?: string;
+  description?: string;
+  price?: number;
+  priceType?: AdPriceType;
+  category?: AdCategory;
+  bairro?: string;
+  sellerName?: string;
+  whatsapp?: string;
+  phone?: string;
+  photos?: string[];
+  status?: AdStatus;
+}
+
 export interface AdFilters {
   query?: string;
   category?: AdCategory | 'all';

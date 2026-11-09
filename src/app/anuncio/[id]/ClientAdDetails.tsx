@@ -303,7 +303,7 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
         url={typeof window !== 'undefined' ? window.location.href : ''}
       />
 
-      {/* Manage Modal */}
+      {/* Manage & Edit Modal */}
       <ManageAdModal
         isOpen={isManageModalOpen}
         onClose={() => setIsManageModalOpen(false)}
@@ -311,8 +311,12 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
         adTitle={ad.title}
         currentStatus={ad.status}
         initialPin={savedPin}
+        initialAd={ad}
         onStatusChanged={newStatus => {
           setAd(prev => ({ ...prev, status: newStatus }));
+        }}
+        onAdUpdated={updatedAd => {
+          setAd(updatedAd);
         }}
         onDeleted={() => {
           if (typeof window !== 'undefined') {

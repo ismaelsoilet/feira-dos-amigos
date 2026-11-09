@@ -1,5 +1,37 @@
 import { NextResponse } from 'next/server';
-import { updateAdStatus, deleteAd } from '@/lib/storage';
+import { updateAdStatus, updateAd, deleteAd } from '@/lib/storage';
+
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+
+    if (!body.pin || String(body.pin).trim().length < 4) {
+      return NextResponse.json({ error: 'Informe o PIN de 4 dígitos.' }, { status: 400 });
+    }
+
+    const result = await updateAd(id, {
+      ...body,
+      pin: String(body.pin).trim(),
+    });
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.error || 'Não autorizado.' }, { status: 401 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      ad: result.ad,
+      message: 'Anúncio atualizado com sucesso!',
+    });
+  } catch (error) {
+    console.error('Error editing ad:', error);
+    return NextResponse.json({ error: 'Erro ao editar anúncio.' }, { status: 500 });
+  }
+}
 
 export async function PATCH(
   request: Request,
