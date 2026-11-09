@@ -5,9 +5,11 @@ import Image from 'next/image';
 import {
   Sparkles,
   SlidersHorizontal,
+  Heart,
 } from 'lucide-react';
-import { AdSummary, AdCategory, AdFilters, AD_CATEGORIES } from '@/types/ad';
+import { AdSummary, AdCategory, AdFilters, AD_CATEGORIES, CommunityStats } from '@/types/ad';
 import { filterAndSearchAds } from '@/lib/search';
+import { getFavorites } from '@/lib/favorites';
 import { Navbar } from '@/components/Navbar';
 import { BottomNav } from '@/components/BottomNav';
 import { FilterDrawer } from '@/components/FilterDrawer';
@@ -20,6 +22,8 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<AdFilters>({ includeSold: false, sortBy: 'recent' });
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [stats, setStats] = useState<CommunityStats | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedAdForManage, setSelectedAdForManage] = useState<AdSummary | null>(null);
@@ -39,14 +43,43 @@ export default function HomePage() {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const res = await fetch('/api/stats');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.stats) {
+          setStats(data.stats);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load community stats:', err);
+    }
+  };
+
   useEffect(() => {
     fetchAds();
+    fetchStats();
+    setFavorites(getFavorites());
+
+    const handleFavUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<string[]>;
+      if (customEvent.detail) {
+        setFavorites(customEvent.detail);
+      }
+    };
+    window.addEventListener('feira_favorites_updated', handleFavUpdate);
+    return () => window.removeEventListener('feira_favorites_updated', handleFavUpdate);
   }, []);
 
   // Filter and search computation
   const filteredAds = useMemo(() => {
-    return filterAndSearchAds(ads, searchQuery, filters);
-  }, [ads, searchQuery, filters]);
+    const combinedFilters: AdFilters = {
+      ...filters,
+      favoriteIds: favorites,
+    };
+    return filterAndSearchAds(ads, searchQuery, combinedFilters);
+  }, [ads, searchQuery, filters, favorites]);
 
   const activeCategory = filters.category || 'all';
 
@@ -63,7 +96,8 @@ export default function HomePage() {
       filters.minPrice !== undefined ||
       filters.maxPrice !== undefined ||
       (filters.priceType && filters.priceType !== 'all') ||
-      filters.includeSold
+      filters.includeSold ||
+      filters.onlyFavorites
   );
 
   return (
@@ -75,6 +109,11 @@ export default function HomePage() {
         onOpenFilter={() => setIsFilterOpen(true)}
         onOpenCreate={() => setIsCreateOpen(true)}
         hasActiveFilters={hasActiveFilters}
+        favoritesCount={favorites.length}
+        onlyFavoritesActive={!!filters.onlyFavorites}
+        onToggleFavorites={() =>
+          setFilters(prev => ({ ...prev, onlyFavorites: !prev.onlyFavorites }))
+        }
       />
 
       {/* Main Content Area */}
@@ -85,7 +124,11 @@ export default function HomePage() {
             <div className="space-y-2 text-center sm:text-left">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-[11px] font-black text-white tracking-wide shadow-sm">
                 <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-                <span>COMUNIDADE DE PERUÍBE — 100% GRÁTIS</span>
+                <span>
+                  {stats
+                    ? `${stats.totalActive} ${stats.totalActive === 1 ? 'anúncio ativo' : 'anúncios ativos'} • ${stats.bairrosCount} ${stats.bairrosCount === 1 ? 'bairro' : 'bairros'} de Peruíbe`
+                    : 'COMUNIDADE DE PERUÍBE — 100% GRÁTIS'}
+                </span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-black leading-tight text-white">
                 Venda, Troque e Ache Oportunidades em Peruíbe
@@ -145,6 +188,85 @@ export default function HomePage() {
                 {cat.label}
               </button>
             ))}
+          </div>
+
+          {/* Quick Price & Favorites Filter Bar */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+            {/* Meus Favoritos Pill */}
+            <button
+              onClick={() =>
+                setFilters(prev => ({ ...prev, onlyFavorites: !prev.onlyFavorites }))
+              }
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold whitespace-nowrap border transition-all ${
+                filters.onlyFavorites
+                  ? 'bg-rose-500 text-white border-rose-500 shadow-sm shadow-rose-500/20'
+                  : 'bg-rose-50/60 border-rose-200 text-rose-700 hover:bg-rose-100'
+              }`}
+            >
+              <Heart className={`w-3.5 h-3.5 ${filters.onlyFavorites ? 'fill-current' : ''}`} />
+              <span>Favoritos {favorites.length > 0 ? `(${favorites.length})` : ''}</span>
+            </button>
+
+            {/* Price shortcuts */}
+            {[
+              { label: 'Até R$ 50', max: 50 },
+              { label: 'Até R$ 150', max: 150 },
+              { label: 'Até R$ 300', max: 300 },
+            ].map(pricePill => {
+              const isSelected = filters.maxPrice === pricePill.max && filters.minPrice === undefined;
+              return (
+                <button
+                  key={pricePill.label}
+                  onClick={() =>
+                    setFilters(prev => ({
+                      ...prev,
+                      minPrice: undefined,
+                      maxPrice: isSelected ? undefined : pricePill.max,
+                    }))
+                  }
+                  className={`px-3 py-1.5 rounded-full font-bold whitespace-nowrap border transition-all ${
+                    isSelected
+                      ? 'bg-purple-700 text-white border-purple-700 shadow-sm'
+                      : 'bg-purple-50/50 border-purple-200 text-purple-900 hover:bg-purple-100'
+                  }`}
+                >
+                  {pricePill.label}
+                </button>
+              );
+            })}
+
+            {/* Trocas & Doações Pills */}
+            <button
+              onClick={() =>
+                setFilters(prev => ({
+                  ...prev,
+                  priceType: prev.priceType === 'trade' ? 'all' : 'trade',
+                }))
+              }
+              className={`px-3 py-1.5 rounded-full font-bold whitespace-nowrap border transition-all ${
+                filters.priceType === 'trade'
+                  ? 'bg-purple-700 text-white border-purple-700 shadow-sm'
+                  : 'bg-purple-50/50 border-purple-200 text-purple-900 hover:bg-purple-100'
+              }`}
+            >
+              🔄 Trocas
+            </button>
+
+            <button
+              onClick={() =>
+                setFilters(prev => ({
+                  ...prev,
+                  priceType: prev.priceType === 'free' ? 'all' : 'free',
+                }))
+              }
+              className={`px-3 py-1.5 rounded-full font-bold whitespace-nowrap border transition-all ${
+                filters.priceType === 'free'
+                  ? 'bg-purple-700 text-white border-purple-700 shadow-sm'
+                  : 'bg-purple-50/50 border-purple-200 text-purple-900 hover:bg-purple-100'
+              }`}
+            >
+              🎁 Doações / Grátis
+            </button>
           </div>
         </section>
 

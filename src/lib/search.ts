@@ -22,6 +22,14 @@ export function filterAndSearchAds(
       return false;
     }
 
+    // 1.1 Favorites filter
+    if (filters?.onlyFavorites) {
+      const favSet = new Set(filters.favoriteIds || []);
+      if (!favSet.has(ad.id)) {
+        return false;
+      }
+    }
+
     // 2. Category check
     if (filters?.category && filters.category !== 'all' && ad.category !== filters.category) {
       return false;

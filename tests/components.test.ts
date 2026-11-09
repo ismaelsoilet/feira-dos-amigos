@@ -33,4 +33,12 @@ describe('Task 5: UI Components & Formatters', () => {
     expect(link).toContain(encodeURIComponent('Bicicleta Caloi 29'));
     expect(link).toContain('Feira%20dos%20Amigos');
   });
+
+  it('should generate valid QR code data URLs for stand sharing', async () => {
+    const QRCode = (await import('qrcode')).default;
+    const uri = await QRCode.toDataURL('https://feiradosamigos.vercel.app/anuncio/ad_test_qr', {
+      width: 200,
+    });
+    expect(uri.startsWith('data:image/png;base64,')).toBe(true);
+  });
 });

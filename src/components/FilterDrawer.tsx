@@ -130,9 +130,49 @@ export function FilterDrawer({
 
           {/* Faixa de Preço */}
           <div>
-            <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-2">
-              Faixa de Preço (R$)
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider">
+                Faixa de Preço (R$)
+              </label>
+            </div>
+
+            {/* Quick Price Shortcuts */}
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {[
+                { label: 'Até R$ 50', min: undefined, max: 50 },
+                { label: 'Até R$ 150', min: undefined, max: 150 },
+                { label: 'Até R$ 300', min: undefined, max: 300 },
+                { label: 'Acima de R$ 300', min: 300, max: undefined },
+              ].map(shortcut => {
+                const isSelected =
+                  localFilters.minPrice === shortcut.min && localFilters.maxPrice === shortcut.max;
+                return (
+                  <button
+                    key={shortcut.label}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        setLocalFilters(prev => ({ ...prev, minPrice: undefined, maxPrice: undefined }));
+                      } else {
+                        setLocalFilters(prev => ({
+                          ...prev,
+                          minPrice: shortcut.min,
+                          maxPrice: shortcut.max,
+                        }));
+                      }
+                    }}
+                    className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all ${
+                      isSelected
+                        ? 'bg-purple-700 text-white border-purple-700 shadow-sm'
+                        : 'bg-purple-50/60 border-purple-200 text-purple-800 hover:bg-purple-100'
+                    }`}
+                  >
+                    {shortcut.label}
+                  </button>
+                );
+              })}
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <span className="text-[11px] text-slate-500 font-semibold">Mínimo</span>
@@ -186,8 +226,29 @@ export function FilterDrawer({
             </select>
           </div>
 
-          {/* O filtro crucial: Mostrar itens já vendidos */}
-          <div className="pt-2 border-t border-purple-100">
+          {/* Filtros de Status & Favoritos */}
+          <div className="pt-2 border-t border-purple-100 space-y-2.5">
+            {/* Favoritos */}
+            <label className="flex items-center gap-3 p-3.5 rounded-xl bg-purple-50/70 border border-purple-200 cursor-pointer hover:border-purple-300 transition-colors">
+              <input
+                type="checkbox"
+                checked={!!localFilters.onlyFavorites}
+                onChange={e =>
+                  setLocalFilters(prev => ({ ...prev, onlyFavorites: e.target.checked }))
+                }
+                className="w-4 h-4 accent-purple-700 rounded cursor-pointer"
+              />
+              <div>
+                <span className="text-xs font-bold text-purple-950 block">
+                  ❤️ Apenas Meus Favoritos
+                </span>
+                <span className="text-[11px] text-slate-500 block">
+                  Exibe apenas os itens que você favoritou no aparelho.
+                </span>
+              </div>
+            </label>
+
+            {/* O filtro crucial: Mostrar itens já vendidos */}
             <label className="flex items-center gap-3 p-3.5 rounded-xl bg-purple-50/70 border border-purple-200 cursor-pointer hover:border-purple-300 transition-colors">
               <input
                 type="checkbox"

@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { PlusCircle, Search, SlidersHorizontal, PackageCheck } from 'lucide-react';
+import { PlusCircle, Search, SlidersHorizontal, PackageCheck, Heart } from 'lucide-react';
 
 interface NavbarProps {
   searchQuery: string;
@@ -11,6 +11,9 @@ interface NavbarProps {
   onOpenFilter: () => void;
   onOpenCreate: () => void;
   hasActiveFilters?: boolean;
+  favoritesCount?: number;
+  onlyFavoritesActive?: boolean;
+  onToggleFavorites?: () => void;
 }
 
 export function Navbar({
@@ -19,6 +22,9 @@ export function Navbar({
   onOpenFilter,
   onOpenCreate,
   hasActiveFilters = false,
+  favoritesCount = 0,
+  onlyFavoritesActive = false,
+  onToggleFavorites,
 }: NavbarProps) {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-purple-100 shadow-sm shadow-purple-950/5">
@@ -69,6 +75,26 @@ export function Navbar({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
+          {/* Favorites Filter Shortcut */}
+          {onToggleFavorites && (
+            <button
+              onClick={onToggleFavorites}
+              className={`relative p-2 rounded-full border transition-all ${
+                onlyFavoritesActive
+                  ? 'bg-rose-500 border-rose-500 text-white shadow-sm shadow-rose-500/20'
+                  : 'bg-white border-purple-200 text-purple-700 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-200'
+              }`}
+              title={onlyFavoritesActive ? 'Ver todos os anúncios' : 'Ver apenas favoritos'}
+            >
+              <Heart className={`w-5 h-5 ${onlyFavoritesActive ? 'fill-current' : ''}`} />
+              {(favoritesCount ?? 0) > 0 && !onlyFavoritesActive && (
+                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-sm">
+                  {favoritesCount}
+                </span>
+              )}
+            </button>
+          )}
+
           {/* Filter Drawer Toggle */}
           <button
             onClick={onOpenFilter}

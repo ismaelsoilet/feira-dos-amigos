@@ -88,4 +88,13 @@ describe('Task 4: Smart Search & Term Highlighter', () => {
     expect(matchedTexts).toContain('aro');
     expect(matchedTexts).toContain('peruíbe');
   });
+
+  it('should filter by onlyFavorites when specified', () => {
+    const res = filterAndSearchAds(adsSample, '', {
+      onlyFavorites: true,
+      favoriteIds: ['2'],
+    });
+    expect(res.length).toBe(1);
+    expect(res[0].id).toBe('2');
+  });
 });

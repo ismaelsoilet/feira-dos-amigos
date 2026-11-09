@@ -29,6 +29,8 @@ export interface Ad {
   expiresAt: string;
   createdAt: string;
   updatedAt: string;
+  views?: number;
+  whatsappClicks?: number;
 }
 
 export interface AdSummary {
@@ -46,6 +48,8 @@ export interface AdSummary {
   status: AdStatus;
   expiresAt: string;
   createdAt: string;
+  views?: number;
+  whatsappClicks?: number;
 }
 
 export interface CreateAdInput {
@@ -71,7 +75,18 @@ export interface AdFilters {
   maxPrice?: number;
   priceType?: AdPriceType | 'all';
   includeSold?: boolean;
+  onlyFavorites?: boolean;
+  favoriteIds?: string[];
   sortBy?: 'recent' | 'price_asc' | 'price_desc' | 'expiring';
+}
+
+export interface CommunityStats {
+  totalActive: number;
+  totalSold: number;
+  totalExpired: number;
+  bairrosCount: number;
+  totalViews: number;
+  totalWhatsappClicks: number;
 }
 
 export const PERUIBE_BAIRROS = [

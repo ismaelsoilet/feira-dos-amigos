@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { put, del, list } from '@vercel/blob';
-import { Ad, AdSummary, CreateAdInput, AdFilters } from '../types/ad';
+import { Ad, AdSummary, CreateAdInput, AdFilters, CommunityStats } from '../types/ad';
 
 // In serverless environments (like Vercel), only /tmp is writable
 const BASE_DATA_PATH = process.env.VERCEL
@@ -105,13 +105,15 @@ function toSummary(ad: Ad): AdSummary {
     status: ad.status,
     expiresAt: ad.expiresAt,
     createdAt: ad.createdAt,
+    views: ad.views || 0,
+    whatsappClicks: ad.whatsappClicks || 0,
   };
 }
 
 export async function saveAd(input: CreateAdInput): Promise<Ad> {
   const id = `ad_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
   const now = new Date();
-  const duration = input.durationDays || 30;
+  const duration = input.durationDays !== undefined ? input.durationDays : 30;
   const expiresAt = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000).toISOString();
 
   const ad: Ad = {
@@ -131,6 +133,8 @@ export async function saveAd(input: CreateAdInput): Promise<Ad> {
     expiresAt,
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
+    views: 0,
+    whatsappClicks: 0,
   };
 
   // 1. Write ad to local fallback
@@ -343,6 +347,140 @@ export async function deleteAd(
   await syncCatalogIndex(filtered);
 
   return { success: true };
+}
+
+export async function incrementAdMetric(
+  id: string,
+  metric: 'views' | 'whatsappClicks'
+): Promise<{ views: number; whatsappClicks: number } | null> {
+  const ad = await getAdById(id);
+  if (!ad) {
+    return null;
+  }
+
+  if (metric === 'views') {
+    ad.views = (ad.views || 0) + 1;
+  } else if (metric === 'whatsappClicks') {
+    ad.whatsappClicks = (ad.whatsappClicks || 0) + 1;
+  }
+
+  // Update local ad file
+  ensureLocalDirs();
+  const localFile = path.join(LOCAL_DATA_DIR, `${id}.json`);
+  try {
+    fs.writeFileSync(localFile, JSON.stringify(ad, null, 2));
+  } catch (err) {
+    console.warn(`Local ad update error on metric ${metric} for ${id}:`, err);
+  }
+
+  // Update in Blob if configured
+  if (isVercelBlobConfigured()) {
+    try {
+      await put(`ads/${id}/ad.json`, JSON.stringify(ad, null, 2), {
+        access: 'public',
+        addRandomSuffix: false,
+        contentType: 'application/json',
+      });
+    } catch (err) {
+      console.warn(`Blob ad update error on metric ${metric} for ${id}:`, err);
+    }
+  }
+
+  // Update in master catalog index
+  const index = await getCatalogIndex();
+  const item = index.find(a => a.id === id);
+  if (item) {
+    item.views = ad.views;
+    item.whatsappClicks = ad.whatsappClicks;
+    await syncCatalogIndex(index);
+  }
+
+  return {
+    views: ad.views || 0,
+    whatsappClicks: ad.whatsappClicks || 0,
+  };
+}
+
+export async function purgeExpiredAds(): Promise<{ purgedCount: number; purgedIds: string[] }> {
+  const index = await getCatalogIndex();
+  const now = new Date().toISOString();
+  const purgedIds: string[] = [];
+
+  for (const item of index) {
+    if (item.status !== 'expired' && item.expiresAt && item.expiresAt < now) {
+      item.status = 'expired';
+      purgedIds.push(item.id);
+
+      // Update full ad file if present locally
+      const localFile = path.join(LOCAL_DATA_DIR, `${item.id}.json`);
+      if (fs.existsSync(localFile)) {
+        try {
+          const raw = fs.readFileSync(localFile, 'utf-8');
+          const fullAd: Ad = JSON.parse(raw);
+          fullAd.status = 'expired';
+          fullAd.updatedAt = now;
+          fs.writeFileSync(localFile, JSON.stringify(fullAd, null, 2));
+        } catch (err) {
+          console.warn(`Local expired ad update error for ${item.id}:`, err);
+        }
+      }
+
+      // If Blob configured, optionally delete photos to save storage quota
+      if (isVercelBlobConfigured()) {
+        try {
+          const { blobs } = await list({ prefix: `ads/${item.id}/photo-` });
+          if (blobs.length > 0) {
+            await del(blobs.map(b => b.url));
+          }
+        } catch (err) {
+          console.warn(`Blob expired photos deletion error for ${item.id}:`, err);
+        }
+      }
+    }
+  }
+
+  if (purgedIds.length > 0) {
+    await syncCatalogIndex(index);
+  }
+
+  return { purgedCount: purgedIds.length, purgedIds };
+}
+
+export async function getCommunityStats(): Promise<CommunityStats> {
+  const index = await getCatalogIndex();
+  const now = new Date().toISOString();
+
+  let totalActive = 0;
+  let totalSold = 0;
+  let totalExpired = 0;
+  let totalViews = 0;
+  let totalWhatsappClicks = 0;
+  const activeBairros = new Set<string>();
+
+  for (const item of index) {
+    totalViews += item.views || 0;
+    totalWhatsappClicks += item.whatsappClicks || 0;
+
+    if (item.status === 'sold') {
+      totalSold++;
+    } else if (item.status === 'expired' || (item.expiresAt && item.expiresAt < now)) {
+      totalExpired++;
+    } else {
+      totalActive++;
+      if (item.bairro) {
+        activeBairros.add(item.bairro);
+      }
+    }
+  }
+
+  return {
+    totalActive,
+    totalSold,
+    totalExpired,
+    bairrosCount: activeBairros.size,
+    totalViews,
+    totalWhatsappClicks,
+  };
 }
 
 export async function clearLocalStorageForTesting(): Promise<void> {

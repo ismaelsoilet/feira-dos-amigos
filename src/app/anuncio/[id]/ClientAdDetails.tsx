@@ -9,10 +9,16 @@ import {
   Calendar,
   User,
   Shield,
+  Heart,
+  QrCode,
+  Eye,
+  Sparkles,
 } from 'lucide-react';
 import { Ad } from '@/types/ad';
 import { formatPrice, buildWhatsAppLink } from '@/components/AdCard';
 import { ManageAdModal } from '@/components/ManageAdModal';
+import { isFavorite, toggleFavorite } from '@/lib/favorites';
+import { QRCodeModal } from '@/components/QRCodeModal';
 
 interface ClientAdDetailsProps {
   initialAd: Omit<Ad, 'pinHash'>;
@@ -22,8 +28,35 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
   const [ad, setAd] = useState(initialAd);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [savedPin, setSavedPin] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
+  const [favorite, setFavorite] = useState(false);
+
+  // Record ad view once on mount
+  useEffect(() => {
+    fetch(`/api/ads/${ad.id}/view`, { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.views) {
+          setAd(prev => ({ ...prev, views: data.views }));
+        }
+      })
+      .catch(err => console.warn('Ad view metric error:', err));
+  }, [ad.id]);
+
+  // Sync favorite state
+  useEffect(() => {
+    setFavorite(isFavorite(ad.id));
+    const handleFavUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<string[]>;
+      if (customEvent.detail) {
+        setFavorite(customEvent.detail.includes(ad.id));
+      }
+    };
+    window.addEventListener('feira_favorites_updated', handleFavUpdate);
+    return () => window.removeEventListener('feira_favorites_updated', handleFavUpdate);
+  }, [ad.id]);
 
   // Check if current device has saved PIN in localStorage
   useEffect(() => {
@@ -37,6 +70,22 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
       console.warn('localStorage error:', e);
     }
   }, [ad.id]);
+
+  const handleToggleFavorite = () => {
+    const isNowFav = toggleFavorite(ad.id);
+    setFavorite(isNowFav);
+  };
+
+  const handleWhatsAppClick = () => {
+    fetch(`/api/ads/${ad.id}/whatsapp-click`, { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.whatsappClicks) {
+          setAd(prev => ({ ...prev, whatsappClicks: data.whatsappClicks }));
+        }
+      })
+      .catch(err => console.warn('Ad whatsapp metric error:', err));
+  };
 
   const isSold = ad.status === 'sold';
   const whatsappUrl = buildWhatsAppLink({
@@ -86,6 +135,31 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
             </div>
           )}
 
+          {/* Top Floating Actions: Favorite & QR */}
+          <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+            <button
+              onClick={handleToggleFavorite}
+              className={`p-3 rounded-full backdrop-blur-md shadow-md transition-all ${
+                favorite
+                  ? 'bg-rose-500 text-white shadow-rose-500/30 scale-105'
+                  : 'bg-white/90 text-slate-600 hover:text-rose-500 hover:bg-white'
+              }`}
+              title={favorite ? 'Remover dos favoritos' : 'Salvar nos favoritos'}
+            >
+              <Heart className={`w-5 h-5 ${favorite ? 'fill-current' : ''}`} />
+            </button>
+          </div>
+
+          <div className="absolute top-4 right-4 z-10">
+            <button
+              onClick={() => setIsQrModalOpen(true)}
+              className="p-3 rounded-full bg-white/90 backdrop-blur-md text-purple-900 hover:bg-white shadow-md transition-all"
+              title="Ver QR Code da Barraca"
+            >
+              <QrCode className="w-5 h-5 text-purple-700" />
+            </button>
+          </div>
+
           {/* Price Pill */}
           <div className="absolute bottom-4 left-4 z-10">
             <span className="px-4 py-1.5 rounded-full text-base font-black bg-white/95 backdrop-blur-md text-purple-950 border border-purple-200 shadow-lg">
@@ -131,6 +205,18 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
           {/* Title */}
           <h1 className="text-2xl font-black text-slate-900 leading-tight">{ad.title}</h1>
 
+          {/* Stats Bar */}
+          <div className="flex items-center gap-4 text-xs text-slate-500 py-1 border-b border-purple-50">
+            <span className="flex items-center gap-1.5" title="Visualizações">
+              <Eye className="w-4 h-4 text-purple-600" />
+              <strong>{ad.views || 0}</strong> visualizações
+            </span>
+            <span className="flex items-center gap-1.5" title="Cliques no WhatsApp">
+              <MessageCircle className="w-4 h-4 text-emerald-600" />
+              <strong>{ad.whatsappClicks || 0}</strong> contatos
+            </span>
+          </div>
+
           {/* Location Badge */}
           <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-purple-50/70 border border-purple-100">
             <MapPin className="w-5 h-5 text-purple-700 shrink-0" />
@@ -169,6 +255,7 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={handleWhatsAppClick}
             className={`w-full py-4 px-4 rounded-2xl font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2.5 transition-all shadow-md ${
               isSold
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed pointer-events-none'
@@ -179,26 +266,42 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
             <span>Chamar no WhatsApp</span>
           </a>
 
-          {/* Share & Manage Row */}
-          <div className="flex items-center gap-2">
+          {/* Share, QR & Manage Row */}
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={handleShare}
-              className="flex-1 py-2.5 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-purple-900 transition-colors flex items-center justify-center gap-2"
+              className="py-2.5 px-2 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-purple-900 transition-colors flex items-center justify-center gap-1.5"
             >
-              <Share2 className="w-4 h-4 text-purple-600" />
-              <span>{copiedLink ? 'Link Copiado!' : 'Compartilhar'}</span>
+              <Share2 className="w-3.5 h-3.5 text-purple-600" />
+              <span>{copiedLink ? 'Copiado!' : 'Compartilhar'}</span>
+            </button>
+
+            <button
+              onClick={() => setIsQrModalOpen(true)}
+              className="py-2.5 px-2 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-purple-900 transition-colors flex items-center justify-center gap-1.5"
+            >
+              <QrCode className="w-3.5 h-3.5 text-purple-700" />
+              <span>QR Code</span>
             </button>
 
             <button
               onClick={() => setIsManageModalOpen(true)}
-              className="py-2.5 px-4 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-purple-900 transition-colors flex items-center gap-2"
+              className="py-2.5 px-2 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-purple-900 transition-colors flex items-center justify-center gap-1.5"
             >
-              <Shield className="w-4 h-4 text-purple-700" />
+              <Shield className="w-3.5 h-3.5 text-purple-700" />
               <span>Gerenciar</span>
             </button>
           </div>
         </div>
       </div>
+
+      {/* QR Code Modal for Stands & Stalls */}
+      <QRCodeModal
+        isOpen={isQrModalOpen}
+        onClose={() => setIsQrModalOpen(false)}
+        title={ad.title}
+        url={typeof window !== 'undefined' ? window.location.href : ''}
+      />
 
       {/* Manage Modal */}
       <ManageAdModal
