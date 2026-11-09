@@ -10,6 +10,7 @@ interface AdGridProps {
   ads: AdSummary[];
   isLoading?: boolean;
   searchQuery?: string;
+  onAdClick?: (ad: AdSummary) => void;
   onManageClick?: (ad: AdSummary) => void;
   onClearFilters?: () => void;
 }
@@ -18,6 +19,7 @@ export function AdGrid({
   ads,
   isLoading = false,
   searchQuery = '',
+  onAdClick,
   onManageClick,
   onClearFilters,
 }: AdGridProps) {
@@ -29,7 +31,7 @@ export function AdGrid({
             key={i}
             className="bg-white border border-purple-100 rounded-2xl overflow-hidden animate-pulse shadow-sm"
           >
-            <div className="aspect-[4/3] bg-purple-50" />
+            <div className="aspect-square bg-purple-50" />
             <div className="p-4 space-y-3">
               <div className="h-4 bg-purple-100 rounded w-2/3" />
               <div className="h-3 bg-purple-50 rounded w-full" />
@@ -72,6 +74,7 @@ export function AdGrid({
           key={ad.id}
           ad={ad}
           searchQuery={searchQuery}
+          onAdClick={onAdClick}
           onManageClick={onManageClick}
         />
       ))}

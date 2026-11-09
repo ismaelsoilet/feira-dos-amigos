@@ -3,6 +3,9 @@
 import React from 'react';
 import { getHighlightParts } from '@/lib/search';
 
+export const DEFAULT_HIGHLIGHT_CLASS =
+  'bg-amber-300 text-amber-950 font-black px-1.5 py-0.5 rounded shadow-sm ring-1 ring-amber-400/90';
+
 interface HighlightTextProps {
   text: string;
   query: string;
@@ -14,7 +17,7 @@ export function HighlightText({
   text,
   query,
   className = '',
-  highlightClassName = 'bg-purple-100 text-purple-950 font-bold px-1 rounded border border-purple-200/80',
+  highlightClassName = DEFAULT_HIGHLIGHT_CLASS,
 }: HighlightTextProps) {
   if (!query || !query.trim()) {
     return <span className={className}>{text}</span>;

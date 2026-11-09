@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MessageCircle, MapPin, Tag, ShieldCheck, Clock, Heart, QrCode, Eye, Sparkles } from 'lucide-react';
+import { MessageCircle, MapPin, Tag, ShieldCheck, Clock, Heart, QrCode, Eye, Sparkles, Maximize2 } from 'lucide-react';
 import { AdSummary, AdPriceType } from '@/types/ad';
 import { HighlightText } from './HighlightText';
 import { isFavorite, toggleFavorite } from '@/lib/favorites';
@@ -30,10 +30,11 @@ export function buildWhatsAppLink(ad: AdSummary): string {
 interface AdCardProps {
   ad: AdSummary;
   searchQuery?: string;
+  onAdClick?: (ad: AdSummary) => void;
   onManageClick?: (ad: AdSummary) => void;
 }
 
-export function AdCard({ ad, searchQuery = '', onManageClick }: AdCardProps) {
+export function AdCard({ ad, searchQuery = '', onAdClick, onManageClick }: AdCardProps) {
   const isSold = ad.status === 'sold';
   const whatsappUrl = buildWhatsAppLink(ad);
   const [favorite, setFavorite] = useState(false);
@@ -60,7 +61,8 @@ export function AdCard({ ad, searchQuery = '', onManageClick }: AdCardProps) {
     setFavorite(isNowFav);
   };
 
-  const handleWhatsAppClick = () => {
+  const handleWhatsAppClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     // Record engagement metric asynchronously without blocking the user
     try {
       fetch(`/api/ads/${ad.id}/whatsapp-click`, { method: 'POST' }).catch(err => {
@@ -68,6 +70,13 @@ export function AdCard({ ad, searchQuery = '', onManageClick }: AdCardProps) {
       });
     } catch (err) {
       console.warn('Metric error:', err);
+    }
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (onAdClick) {
+      e.preventDefault();
+      onAdClick(ad);
     }
   };
 
@@ -86,24 +95,47 @@ export function AdCard({ ad, searchQuery = '', onManageClick }: AdCardProps) {
     ? `${window.location.origin}/anuncio/${ad.id}`
     : `https://feiradosamigos.vercel.app/anuncio/${ad.id}`;
 
+  const imageSrc = ad.thumbnail || '/logo.jpg';
+
   return (
     <>
       <div
-        className={`group relative bg-white border rounded-2xl overflow-hidden transition-all duration-200 hover:shadow-xl flex flex-col justify-between ${
+        onClick={handleCardClick}
+        className={`group relative bg-white border rounded-2xl overflow-hidden transition-all duration-200 hover:shadow-xl flex flex-col justify-between cursor-pointer ${
           isSold
             ? 'border-rose-200 bg-slate-50/80 opacity-80'
             : 'border-purple-100 hover:border-purple-300 hover:shadow-purple-950/10'
         }`}
       >
-        {/* Top Banner / Image Container */}
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-purple-50">
+        {/* Top Banner: Aspect-Square with Ambient Blur for Non-Square Photos */}
+        <div className="relative aspect-square w-full overflow-hidden bg-purple-950/5">
+          {/* Ambient blurred backdrop that gracefully frames horizontal & vertical photos */}
+          <div className="absolute inset-0 overflow-hidden">
+            <Image
+              src={imageSrc}
+              alt=""
+              aria-hidden="true"
+              fill
+              className="object-cover blur-md scale-110 opacity-30"
+            />
+          </div>
+
+          {/* Centered crisp product image - object-contain prevents ANY cropping on portrait/landscape photos */}
           <Image
-            src={ad.thumbnail || '/logo.jpg'}
+            src={imageSrc}
             alt={ad.title}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            className="object-contain p-1.5 group-hover:scale-105 transition-transform duration-300 relative z-1"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
+
+          {/* Quick Details Peek Icon on Hover */}
+          <div className="absolute inset-0 bg-purple-950/20 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center pointer-events-none">
+            <span className="px-3 py-1.5 rounded-full bg-white/95 text-purple-950 text-xs font-black shadow-lg flex items-center gap-1.5">
+              <Maximize2 className="w-3.5 h-3.5 text-purple-700" />
+              Ver Detalhes
+            </span>
+          </div>
 
           {/* Tarja VENDIDO Carimbo */}
           {isSold && (
@@ -115,7 +147,7 @@ export function AdCard({ ad, searchQuery = '', onManageClick }: AdCardProps) {
           )}
 
           {/* Top Left Badges: Favorite & New Tag */}
-          <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5">
+          <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1.5">
             <button
               onClick={handleToggleFavorite}
               className={`p-2 rounded-full backdrop-blur-md shadow-sm transition-all duration-150 ${
@@ -137,14 +169,14 @@ export function AdCard({ ad, searchQuery = '', onManageClick }: AdCardProps) {
           </div>
 
           {/* Price Tag Pill */}
-          <div className="absolute bottom-2.5 left-2.5 z-10">
+          <div className="absolute bottom-2.5 left-2.5 z-20">
             <span className="px-3 py-1 rounded-full text-xs font-black bg-white/95 backdrop-blur-md text-purple-900 border border-purple-200 shadow-md">
               {formatPrice(ad.price, ad.priceType)}
             </span>
           </div>
 
           {/* Bairro Badge */}
-          <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 bg-white/95 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-purple-900 border border-purple-200 shadow-sm">
+          <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1 bg-white/95 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-purple-900 border border-purple-200 shadow-sm">
             <MapPin className="w-3 h-3 text-purple-600" />
             <span>{ad.bairro}</span>
           </div>
@@ -175,11 +207,9 @@ export function AdCard({ ad, searchQuery = '', onManageClick }: AdCardProps) {
             </div>
 
             {/* Title */}
-            <Link href={`/anuncio/${ad.id}`} className="block">
-              <h3 className="font-bold text-slate-900 text-base line-clamp-1 group-hover:text-purple-700 transition-colors">
-                <HighlightText text={ad.title} query={searchQuery} />
-              </h3>
-            </Link>
+            <h3 className="font-bold text-slate-900 text-base line-clamp-1 group-hover:text-purple-700 transition-colors">
+              <HighlightText text={ad.title} query={searchQuery} />
+            </h3>
 
             {/* Description */}
             <p className="text-slate-600 text-xs mt-1.5 line-clamp-2">
@@ -207,7 +237,10 @@ export function AdCard({ ad, searchQuery = '', onManageClick }: AdCardProps) {
 
             {/* QR Code trigger for feirantes */}
             <button
-              onClick={() => setShowQrModal(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowQrModal(true);
+              }}
               className="p-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 hover:text-purple-950 transition-colors"
               title="Gerar QR Code para Barraca"
             >
@@ -217,7 +250,10 @@ export function AdCard({ ad, searchQuery = '', onManageClick }: AdCardProps) {
             {/* Manage Button if authorized */}
             {onManageClick && (
               <button
-                onClick={() => onManageClick(ad)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onManageClick(ad);
+                }}
                 className="p-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 hover:text-purple-950 transition-colors"
                 title="Gerenciar Anúncio"
               >

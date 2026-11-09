@@ -16,6 +16,7 @@ import { FilterDrawer } from '@/components/FilterDrawer';
 import { AdGrid } from '@/components/AdGrid';
 import { CreateAdModal } from '@/components/CreateAdModal';
 import { ManageAdModal } from '@/components/ManageAdModal';
+import { AdDetailModal } from '@/components/AdDetailModal';
 
 export default function HomePage() {
   const [ads, setAds] = useState<AdSummary[]>([]);
@@ -27,6 +28,7 @@ export default function HomePage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedAdForManage, setSelectedAdForManage] = useState<AdSummary | null>(null);
+  const [selectedAdForDetail, setSelectedAdForDetail] = useState<AdSummary | null>(null);
 
   const fetchAds = async () => {
     setIsLoading(true);
@@ -303,6 +305,7 @@ export default function HomePage() {
           ads={filteredAds}
           isLoading={isLoading}
           searchQuery={searchQuery}
+          onAdClick={ad => setSelectedAdForDetail(ad)}
           onManageClick={ad => setSelectedAdForManage(ad)}
           onClearFilters={() => {
             setSearchQuery('');
@@ -370,6 +373,20 @@ export default function HomePage() {
           }}
           onDeleted={() => {
             setAds(prev => prev.filter(a => a.id !== selectedAdForManage.id));
+          }}
+        />
+      )}
+
+      {/* Ad Details Viewer Modal */}
+      {selectedAdForDetail && (
+        <AdDetailModal
+          isOpen={true}
+          ad={selectedAdForDetail}
+          searchQuery={searchQuery}
+          onClose={() => setSelectedAdForDetail(null)}
+          onManageClick={ad => {
+            setSelectedAdForDetail(null);
+            setSelectedAdForManage(ad);
           }}
         />
       )}

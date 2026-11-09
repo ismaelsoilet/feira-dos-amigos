@@ -13,12 +13,15 @@ import {
   QrCode,
   Eye,
   Sparkles,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Ad } from '@/types/ad';
 import { formatPrice, buildWhatsAppLink } from '@/components/AdCard';
 import { ManageAdModal } from '@/components/ManageAdModal';
 import { isFavorite, toggleFavorite } from '@/lib/favorites';
 import { QRCodeModal } from '@/components/QRCodeModal';
+import { getNextPhotoIndex, getPrevPhotoIndex, getSwipeDirection } from '@/lib/carousel';
 
 interface ClientAdDetailsProps {
   initialAd: Omit<Ad, 'pinHash'>;
@@ -116,15 +119,64 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Photos Column */}
       <div className="lg:col-span-7 space-y-3">
-        {/* Main Photo */}
-        <div className="relative aspect-[4/3] w-full rounded-3xl overflow-hidden bg-purple-50 border border-purple-100 shadow-md">
+        {/* Main Photo with Smart Aspect Ratio Container & Ambient Blur */}
+        <div
+          className="relative aspect-square sm:aspect-4/3 w-full rounded-3xl overflow-hidden bg-slate-950 border border-purple-100 shadow-md select-none"
+          onTouchStart={e => {
+            (window as any).__detailsTouchStartX = e.touches[0].clientX;
+          }}
+          onTouchEnd={e => {
+            const startX = (window as any).__detailsTouchStartX;
+            if (startX !== undefined) {
+              const endX = e.changedTouches[0].clientX;
+              const dir = getSwipeDirection(startX, endX, 40);
+              if (dir === 'left') {
+                setSelectedPhotoIndex(prev => getNextPhotoIndex(prev, ad.photos.length));
+              } else if (dir === 'right') {
+                setSelectedPhotoIndex(prev => getPrevPhotoIndex(prev, ad.photos.length));
+              }
+            }
+          }}
+        >
+          {/* Ambient blurred backdrop that makes portrait & landscape photos blend smoothly */}
+          <div className="absolute inset-0 overflow-hidden">
+            <Image
+              src={ad.photos[selectedPhotoIndex] || '/logo.jpg'}
+              alt=""
+              aria-hidden="true"
+              fill
+              className="object-cover blur-xl scale-125 opacity-40"
+            />
+          </div>
+
+          {/* Crisp centered foreground photo - 100% visible, never cropped */}
           <Image
             src={ad.photos[selectedPhotoIndex] || '/logo.jpg'}
             alt={ad.title}
             fill
-            className="object-cover"
+            className="object-contain p-2 relative z-10 transition-all duration-300"
             priority
           />
+
+          {/* Navigation Arrows for Multiple Photos */}
+          {ad.photos.length > 1 && (
+            <>
+              <button
+                onClick={() => setSelectedPhotoIndex(prev => getPrevPhotoIndex(prev, ad.photos.length))}
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur-sm transition-all"
+                aria-label="Foto anterior"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setSelectedPhotoIndex(prev => getNextPhotoIndex(prev, ad.photos.length))}
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur-sm transition-all"
+                aria-label="Próxima foto"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
 
           {/* Tarja VENDIDO Carimbo */}
           {isSold && (
@@ -135,8 +187,8 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
             </div>
           )}
 
-          {/* Top Floating Actions: Favorite & QR */}
-          <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+          {/* Top Floating Actions: Favorite & QR & Photo Counter */}
+          <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
             <button
               onClick={handleToggleFavorite}
               className={`p-3 rounded-full backdrop-blur-md shadow-md transition-all ${
@@ -148,9 +200,15 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
             >
               <Heart className={`w-5 h-5 ${favorite ? 'fill-current' : ''}`} />
             </button>
+
+            {ad.photos.length > 1 && (
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-black/60 backdrop-blur-md text-white border border-white/20">
+                {selectedPhotoIndex + 1} / {ad.photos.length}
+              </span>
+            )}
           </div>
 
-          <div className="absolute top-4 right-4 z-10">
+          <div className="absolute top-4 right-4 z-20">
             <button
               onClick={() => setIsQrModalOpen(true)}
               className="p-3 rounded-full bg-white/90 backdrop-blur-md text-purple-900 hover:bg-white shadow-md transition-all"
@@ -161,7 +219,7 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
           </div>
 
           {/* Price Pill */}
-          <div className="absolute bottom-4 left-4 z-10">
+          <div className="absolute bottom-4 left-4 z-20">
             <span className="px-4 py-1.5 rounded-full text-base font-black bg-white/95 backdrop-blur-md text-purple-950 border border-purple-200 shadow-lg">
               {formatPrice(ad.price, ad.priceType)}
             </span>
