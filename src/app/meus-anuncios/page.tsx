@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { ArrowLeft, PackageCheck, Plus, Shield, CheckCircle, ExternalLink, Trash2, RotateCcw } from 'lucide-react';
+import { ArrowLeft, PackageCheck, Plus, Shield, ExternalLink } from 'lucide-react';
 import { ManageAdModal } from '@/components/ManageAdModal';
 import { CreateAdModal } from '@/components/CreateAdModal';
 import { AdStatus } from '@/types/ad';
@@ -60,18 +59,18 @@ export default function MeusAnunciosPage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-surface/90 backdrop-blur-md border-b border-purple-800/40">
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-purple-100 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link
             href="/"
-            className="flex items-center gap-1.5 text-xs font-bold text-gray-300 hover:text-white transition-colors py-1 px-2.5 rounded-lg bg-surface-card border border-purple-700/40"
+            className="flex items-center gap-1.5 text-xs font-bold text-purple-900 hover:text-purple-700 transition-colors py-1.5 px-3 rounded-xl bg-purple-50 border border-purple-200"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Voltar para a Feira</span>
           </Link>
           <div className="flex items-center gap-2">
-            <PackageCheck className="w-4 h-4 text-neon-green" />
-            <span className="text-xs font-black text-white">MEUS ANÚNCIOS</span>
+            <PackageCheck className="w-4 h-4 text-purple-700" />
+            <span className="text-xs font-black text-purple-950">MEUS ANÚNCIOS</span>
           </div>
         </div>
       </header>
@@ -80,14 +79,14 @@ export default function MeusAnunciosPage() {
       <main className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-black text-white">Meus Anúncios</h1>
-            <p className="text-xs text-purple-300">
+            <h1 className="text-2xl font-black text-purple-950">Meus Anúncios</h1>
+            <p className="text-xs text-purple-700">
               Anúncios salvos neste aparelho. Gerencie ou marque como vendido em 1 clique.
             </p>
           </div>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-xs uppercase tracking-wide bg-neon-lime hover:bg-neon-green text-gray-950 transition-all shadow-md shadow-neon-lime/20"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full font-bold text-xs uppercase tracking-wide bg-purple-700 hover:bg-purple-800 text-white transition-all shadow-md shadow-purple-700/20"
           >
             <Plus className="w-4 h-4" />
             <span>Novo</span>
@@ -95,18 +94,18 @@ export default function MeusAnunciosPage() {
         </div>
 
         {savedAds.length === 0 ? (
-          <div className="text-center py-16 px-4 max-w-sm mx-auto bg-surface/40 border border-purple-900/30 rounded-3xl p-8">
-            <div className="w-16 h-16 rounded-full bg-purple-950/80 border border-purple-700/60 flex items-center justify-center mx-auto text-purple-400 mb-4">
+          <div className="text-center py-16 px-4 max-w-sm mx-auto bg-white border border-purple-100 rounded-3xl p-8 shadow-sm">
+            <div className="w-16 h-16 rounded-full bg-purple-50 border border-purple-200 flex items-center justify-center mx-auto text-purple-600 mb-4">
               <PackageCheck className="w-8 h-8" />
             </div>
-            <h3 className="font-bold text-lg text-white mb-2">Nenhum anúncio criado ainda</h3>
-            <p className="text-xs text-gray-400 mb-6">
+            <h3 className="font-bold text-lg text-purple-950 mb-2">Nenhum anúncio criado ainda</h3>
+            <p className="text-xs text-slate-500 mb-6">
               Quando você publica um item na Feira dos Amigos, ele fica salvo automaticamente aqui no seu
               navegador para você marcar como vendido ou excluir com facilidade.
             </p>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wide bg-neon-lime hover:bg-neon-green text-gray-950 transition-all shadow-lg shadow-neon-lime/30"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-xs uppercase tracking-wide bg-purple-700 hover:bg-purple-800 text-white transition-all shadow-md shadow-purple-700/25"
             >
               <Plus className="w-4 h-4" />
               <span>Publicar Meu Primeiro Anúncio</span>
@@ -121,36 +120,36 @@ export default function MeusAnunciosPage() {
               return (
                 <div
                   key={item.id}
-                  className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                  className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm ${
                     isSold
-                      ? 'bg-surface/50 border-rose-900/40 opacity-75'
-                      : 'bg-surface border-purple-800/40 hover:border-purple-600'
+                      ? 'bg-slate-50 border-rose-200 opacity-80'
+                      : 'bg-white border-purple-100 hover:border-purple-300'
                   }`}
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-base text-white">{item.title}</span>
+                      <span className="font-bold text-base text-slate-900">{item.title}</span>
                       {isSold ? (
-                        <span className="px-2 py-0.5 rounded bg-rose-950/80 text-rose-400 border border-rose-800 text-[10px] font-black uppercase">
+                        <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-700 border border-rose-200 text-[10px] font-black uppercase">
                           Vendido
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded bg-neon-lime/20 text-neon-green border border-neon-lime/40 text-[10px] font-bold uppercase">
+                        <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-bold uppercase">
                           Ativo na Feira
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-400">
+                    <div className="flex items-center gap-3 text-xs text-slate-500">
                       <span>Publicado em: {new Date(item.createdAt).toLocaleDateString('pt-BR')}</span>
                       <span>•</span>
-                      <span className="text-purple-300 font-mono">PIN: {item.pin}</span>
+                      <span className="text-purple-700 font-mono font-bold">PIN: {item.pin}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
                     <Link
                       href={`/anuncio/${item.id}`}
-                      className="p-2.5 rounded-xl bg-surface-card hover:bg-purple-900/60 border border-purple-700/50 text-gray-300 hover:text-white transition-colors"
+                      className="p-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-900 transition-colors"
                       title="Ver na Feira"
                     >
                       <ExternalLink className="w-4 h-4" />
@@ -158,9 +157,9 @@ export default function MeusAnunciosPage() {
 
                     <button
                       onClick={() => setSelectedAdForManage(item)}
-                      className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl font-bold text-xs bg-purple-950/80 hover:bg-purple-900 text-purple-200 hover:text-white border border-purple-700/60 transition-colors"
+                      className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl font-bold text-xs bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 transition-colors"
                     >
-                      <Shield className="w-4 h-4 text-neon-green" />
+                      <Shield className="w-4 h-4 text-purple-700" />
                       <span>Gerenciar</span>
                     </button>
                   </div>

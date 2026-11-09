@@ -3,14 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --background: #0f071b;
-  --foreground: #f3f4f6;
-  --neon-green: #39FF14;
-  --neon-lime: #22c55e;
+  --background: #faf8fd;
+  --foreground: #1c0f33;
+  --neon-green: #15803d;
+  --neon-lime: #16a34a;
   --cosmic-purple: #6b21a8;
   --cosmic-violet: #7e22ce;
   --vibrant-purple: #9333ea;
-  --vibrant-magenta: #d946ef;
+  --vibrant-magenta: #c026d3;
 }
 
 body {
@@ -23,23 +23,23 @@ body {
 /* Tarja carimbo "VENDIDO" */
 .stamp-sold {
   display: inline-block;
-  padding: 0.25rem 0.75rem;
+  padding: 0.35rem 0.85rem;
   text-transform: uppercase;
   font-weight: 900;
   letter-spacing: 0.15em;
-  color: #f43f5e;
-  border: 3px dashed #f43f5e;
-  border-radius: 8px;
+  color: #e11d48;
+  border: 3px dashed #e11d48;
+  border-radius: 10px;
   transform: rotate(-7deg);
-  background: rgba(244, 63, 94, 0.15);
-  box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 15px rgba(225, 29, 72, 0.3);
 }
 
-/* Neon glow utilities */
-.glow-neon {
-  box-shadow: 0 0 20px rgba(57, 255, 20, 0.35);
-}
-
+/* Purple soft glow */
 .glow-purple {
-  box-shadow: 0 0 25px rgba(147, 51, 234, 0.35);
+  box-shadow: 0 4px 20px rgba(126, 34, 206, 0.15);
+}
+
+.glow-neon {
+  box-shadow: 0 4px 20px rgba(22, 163, 74, 0.25);
 }

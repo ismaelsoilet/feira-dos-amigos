@@ -144,22 +144,22 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-xl bg-surface border border-purple-800/60 rounded-3xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-purple-950/50 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="w-full max-w-xl bg-white border border-purple-200 rounded-3xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-purple-800/40 flex items-center justify-between bg-surface-card">
+        <div className="p-4 sm:p-5 border-b border-purple-100 flex items-center justify-between bg-purple-50/70">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-neon-lime/20 border border-neon-lime/50 flex items-center justify-center text-neon-green">
+            <div className="w-8 h-8 rounded-full bg-purple-100 border border-purple-200 flex items-center justify-center text-purple-700">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-black text-lg text-white">Criar Novo Anúncio</h2>
-              <p className="text-xs text-purple-300">Feira dos Amigos Peruíbe — Vendas & Trocas</p>
+              <h2 className="font-black text-lg text-purple-950">Criar Novo Anúncio</h2>
+              <p className="text-xs text-purple-600">Feira dos Amigos Peruíbe — Vendas & Trocas</p>
             </div>
           </div>
           <button
             onClick={resetAndClose}
-            className="p-1.5 rounded-full hover:bg-purple-900/60 text-gray-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-full hover:bg-purple-100 text-slate-400 hover:text-purple-900 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -170,29 +170,29 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
           {createdAd ? (
             /* Success View */
             <div className="py-6 text-center space-y-5">
-              <div className="w-16 h-16 rounded-full bg-neon-lime/20 border-2 border-neon-lime flex items-center justify-center mx-auto text-neon-green shadow-xl shadow-neon-green/30">
+              <div className="w-16 h-16 rounded-full bg-emerald-100 border-2 border-emerald-500 flex items-center justify-center mx-auto text-emerald-600 shadow-xl shadow-emerald-500/20">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <div>
-                <h3 className="font-black text-2xl text-white">Anúncio Publicado!</h3>
-                <p className="text-sm text-gray-300 mt-1">
+                <h3 className="font-black text-2xl text-purple-950">Anúncio Publicado!</h3>
+                <p className="text-sm text-slate-600 mt-1">
                   Seu item já está visível para toda a comunidade de Peruíbe.
                 </p>
               </div>
 
               {/* PIN reminder box */}
-              <div className="bg-purple-950/70 border border-purple-700/60 p-4 rounded-2xl max-w-sm mx-auto text-left">
-                <div className="flex items-center gap-2 text-neon-green font-bold text-sm mb-1">
-                  <Shield className="w-4 h-4" />
+              <div className="bg-purple-50 border border-purple-200 p-4 rounded-2xl max-w-sm mx-auto text-left shadow-sm">
+                <div className="flex items-center gap-2 text-purple-900 font-bold text-sm mb-1">
+                  <Shield className="w-4 h-4 text-purple-700" />
                   <span>Código de Gestão (PIN)</span>
                 </div>
-                <p className="text-xs text-gray-300">
+                <p className="text-xs text-slate-600">
                   Seu PIN para marcar como vendido ou excluir é:
                 </p>
-                <div className="text-2xl font-black tracking-widest text-white mt-1 text-center bg-black/40 py-2 rounded-xl border border-purple-800">
+                <div className="text-2xl font-black tracking-widest text-purple-950 mt-1 text-center bg-white py-2 rounded-xl border border-purple-300 shadow-sm">
                   {createdAd.pin}
                 </div>
-                <p className="text-[11px] text-gray-400 mt-2 text-center">
+                <p className="text-[11px] text-purple-600 mt-2 text-center font-medium">
                   Salvamos este anúncio no seu aparelho na aba &quot;Meus Anúncios&quot;.
                 </p>
               </div>
@@ -205,7 +205,7 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wide bg-neon-lime hover:bg-neon-green text-gray-950 transition-all shadow-lg"
+                  className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-bold text-xs uppercase tracking-wide bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-md shadow-emerald-600/30"
                 >
                   <Share2 className="w-4 h-4" />
                   <span>Compartilhar no WhatsApp</span>
@@ -213,7 +213,7 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
 
                 <button
                   onClick={resetAndClose}
-                  className="px-5 py-3 rounded-2xl font-bold text-xs bg-purple-900/60 hover:bg-purple-800 text-gray-200 border border-purple-700/50"
+                  className="px-5 py-3 rounded-2xl font-bold text-xs bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200"
                 >
                   Voltar para a Feira
                 </button>
@@ -223,13 +223,13 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
             /* Creation Form */
             <form onSubmit={handleSubmit} className="space-y-5">
               {errorMessage && (
-                <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-800/80 text-rose-200 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                   <span>{errorMessage}</span>
                 </div>
               )}
 
-              {/* Honeypot field (hidden from real users, traps spam bots) */}
+              {/* Honeypot field */}
               <input
                 type="text"
                 name="website_hp"
@@ -242,28 +242,28 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
 
               {/* Photo Upload Area */}
               <div>
-                <label className="block text-xs font-bold text-purple-300 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-2">
                   Fotos do Produto (até 5 fotos)
                 </label>
                 <div className="flex flex-wrap gap-2.5 items-center">
                   {photos.map((p, idx) => (
                     <div
                       key={idx}
-                      className="relative w-20 h-20 rounded-xl overflow-hidden border border-purple-700/60 bg-surface-card group"
+                      className="relative w-20 h-20 rounded-xl overflow-hidden border border-purple-200 bg-purple-50 group shadow-sm"
                     >
                       <Image src={p} alt={`Foto ${idx + 1}`} fill className="object-cover" />
                       <button
                         type="button"
                         onClick={() => removePhoto(idx)}
-                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-rose-400 transition-opacity"
+                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-5 h-5 text-rose-400" />
                       </button>
                     </div>
                   ))}
 
                   {photos.length < 5 && (
-                    <label className="w-20 h-20 rounded-xl border-2 border-dashed border-purple-700 hover:border-neon-lime bg-surface-card/60 flex flex-col items-center justify-center text-purple-300 hover:text-neon-green cursor-pointer transition-colors">
+                    <label className="w-20 h-20 rounded-xl border-2 border-dashed border-purple-300 hover:border-purple-600 bg-purple-50/50 flex flex-col items-center justify-center text-purple-700 hover:text-purple-900 cursor-pointer transition-colors shadow-sm">
                       <Camera className="w-6 h-6 mb-1" />
                       <span className="text-[10px] font-bold">Adicionar</span>
                       <input
@@ -277,7 +277,7 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
                   )}
                 </div>
                 {isCompressing && (
-                  <p className="text-[11px] text-neon-green mt-1 animate-pulse">
+                  <p className="text-[11px] text-purple-700 mt-1 animate-pulse font-medium">
                     Otimizando fotos no aparelho...
                   </p>
                 )}
@@ -285,7 +285,7 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
 
               {/* Título */}
               <div>
-                <label className="block text-xs font-bold text-purple-300 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-1">
                   Título do Anúncio *
                 </label>
                 <input
@@ -294,20 +294,20 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder="Ex: Bicicleta Caloi Aro 29 em ótimo estado"
-                  className="w-full bg-surface-card border border-purple-700/50 rounded-xl px-3 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-neon-lime"
+                  className="w-full bg-white border border-purple-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600"
                 />
               </div>
 
               {/* Categoria e Bairro */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-purple-300 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-1">
                     Categoria *
                   </label>
                   <select
                     value={category}
                     onChange={e => setCategory(e.target.value as AdCategory)}
-                    className="w-full bg-surface-card border border-purple-700/50 rounded-xl px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-neon-lime"
+                    className="w-full bg-white border border-purple-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-purple-600"
                   >
                     {AD_CATEGORIES.map(c => (
                       <option key={c.id} value={c.id}>
@@ -318,13 +318,13 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-purple-300 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-1">
                     Bairro de Peruíbe *
                   </label>
                   <select
                     value={bairro}
                     onChange={e => setBairro(e.target.value)}
-                    className="w-full bg-surface-card border border-purple-700/50 rounded-xl px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-neon-lime"
+                    className="w-full bg-white border border-purple-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-purple-600"
                   >
                     {PERUIBE_BAIRROS.map(b => (
                       <option key={b} value={b}>
@@ -337,7 +337,7 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
 
               {/* Tipo de Preço e Valor */}
               <div>
-                <label className="block text-xs font-bold text-purple-300 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-2">
                   Negociação & Preço
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
@@ -353,8 +353,8 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
                       onClick={() => setPriceType(m.id as AdPriceType)}
                       className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all ${
                         priceType === m.id
-                          ? 'bg-neon-lime/20 border-neon-lime text-neon-green'
-                          : 'bg-surface-card border-purple-800/40 text-gray-300 hover:border-purple-600'
+                          ? 'bg-purple-700 text-white border-purple-700 shadow-sm'
+                          : 'bg-white border-purple-100 text-slate-700 hover:bg-purple-50 hover:border-purple-200'
                       }`}
                     >
                       {m.label}
@@ -364,7 +364,7 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
 
                 {priceType === 'fixed' && (
                   <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-sm font-bold text-gray-400">R$</span>
+                    <span className="absolute left-3 top-2.5 text-sm font-bold text-slate-500">R$</span>
                     <input
                       type="number"
                       step="0.50"
@@ -373,7 +373,7 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
                       value={price}
                       onChange={e => setPrice(e.target.value)}
                       placeholder="0,00"
-                      className="w-full bg-surface-card border border-purple-700/50 rounded-xl pl-10 pr-3 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-neon-lime"
+                      className="w-full bg-white border border-purple-200 rounded-xl pl-10 pr-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-purple-600"
                     />
                   </div>
                 )}
@@ -381,7 +381,7 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
 
               {/* Descrição */}
               <div>
-                <label className="block text-xs font-bold text-purple-300 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-1">
                   Descrição dos Detalhes *
                 </label>
                 <textarea
@@ -390,14 +390,14 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                   placeholder="Conte o estado de conservação, motivo da venda/troca e pontos de referência para entrega."
-                  className="w-full bg-surface-card border border-purple-700/50 rounded-xl px-3 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-neon-lime resize-none"
+                  className="w-full bg-white border border-purple-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-purple-600 resize-none"
                 />
               </div>
 
               {/* Contatos */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-purple-300 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-1">
                     Seu Nome ou Apelido
                   </label>
                   <input
@@ -405,12 +405,12 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
                     value={sellerName}
                     onChange={e => setSellerName(e.target.value)}
                     placeholder="Ex: João da Prefeitura"
-                    className="w-full bg-surface-card border border-purple-700/50 rounded-xl px-3 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-neon-lime"
+                    className="w-full bg-white border border-purple-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-purple-600"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-purple-300 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-1">
                     WhatsApp para Contato *
                   </label>
                   <input
@@ -419,21 +419,21 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
                     value={whatsapp}
                     onChange={e => setWhatsapp(formatPhoneInput(e.target.value))}
                     placeholder="(13) 9XXXX-XXXX"
-                    className="w-full bg-surface-card border border-purple-700/50 rounded-xl px-3 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-neon-lime"
+                    className="w-full bg-white border border-purple-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-purple-600"
                   />
                 </div>
               </div>
 
               {/* Validade e PIN */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-purple-900/40">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-purple-100">
                 <div>
-                  <label className="block text-xs font-bold text-purple-300 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-1">
                     Validade do Anúncio
                   </label>
                   <select
                     value={durationDays}
                     onChange={e => setDurationDays(Number(e.target.value))}
-                    className="w-full bg-surface-card border border-purple-700/50 rounded-xl px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-neon-lime"
+                    className="w-full bg-white border border-purple-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-purple-600"
                   >
                     <option value={7}>7 dias</option>
                     <option value={15}>15 dias</option>
@@ -443,7 +443,7 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-purple-300 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-1">
                     Crie um PIN (4 dígitos) *
                   </label>
                   <input
@@ -453,9 +453,9 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
                     value={pin}
                     onChange={e => setPin(e.target.value)}
                     placeholder="Ex: 1234"
-                    className="w-full bg-surface-card border border-purple-700/50 rounded-xl px-3 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-neon-lime"
+                    className="w-full bg-white border border-purple-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-purple-600"
                   />
-                  <span className="text-[10px] text-gray-400 block mt-1">
+                  <span className="text-[10px] text-slate-500 block mt-1">
                     Usado para marcar como vendido ou excluir.
                   </span>
                 </div>
@@ -466,7 +466,7 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
                 <button
                   type="submit"
                   disabled={isSubmitting || isCompressing}
-                  className="w-full py-3.5 px-4 rounded-2xl font-black text-sm uppercase tracking-wider bg-neon-lime hover:bg-neon-green text-gray-950 transition-all shadow-lg shadow-neon-lime/30 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-3.5 px-4 rounded-2xl font-black text-sm uppercase tracking-wider bg-purple-700 hover:bg-purple-800 text-white transition-all shadow-lg shadow-purple-700/25 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <span className="animate-pulse">Publicando na Feira...</span>

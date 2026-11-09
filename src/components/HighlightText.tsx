@@ -14,7 +14,7 @@ export function HighlightText({
   text,
   query,
   className = '',
-  highlightClassName = 'bg-neon-lime/30 text-neon-green font-bold px-1 rounded',
+  highlightClassName = 'bg-purple-100 text-purple-950 font-bold px-1 rounded border border-purple-200/80',
 }: HighlightTextProps) {
   if (!query || !query.trim()) {
     return <span className={className}>{text}</span>;

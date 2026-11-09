@@ -122,35 +122,35 @@ export function ManageAdModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-surface border border-purple-800/60 rounded-3xl shadow-2xl p-5 overflow-hidden space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-purple-950/50 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="w-full max-w-md bg-white border border-purple-200 rounded-3xl shadow-2xl p-5 overflow-hidden space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-purple-800/40 pb-3">
+        <div className="flex items-center justify-between border-b border-purple-100 pb-3">
           <div className="flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-neon-green" />
-            <h3 className="font-black text-lg text-white">Gerenciar Anúncio</h3>
+            <ShieldAlert className="w-5 h-5 text-purple-700" />
+            <h3 className="font-black text-lg text-purple-950">Gerenciar Anúncio</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-full text-gray-400 hover:text-white transition-colors"
+            className="p-1 rounded-full text-slate-400 hover:text-purple-900 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Ad Title info */}
-        <div className="bg-surface-card p-3 rounded-xl border border-purple-800/40">
-          <span className="text-[11px] text-gray-400 block">Anúncio selecionado:</span>
-          <span className="font-bold text-sm text-gray-100 line-clamp-1">{adTitle}</span>
-          <div className="mt-1 flex items-center gap-2 text-xs">
-            <span className="text-gray-400">Status atual:</span>
+        <div className="bg-purple-50/70 p-3.5 rounded-2xl border border-purple-100">
+          <span className="text-[11px] text-purple-700 font-semibold block">Anúncio selecionado:</span>
+          <span className="font-bold text-sm text-purple-950 line-clamp-1">{adTitle}</span>
+          <div className="mt-1.5 flex items-center gap-2 text-xs">
+            <span className="text-slate-500">Status atual:</span>
             {currentStatus === 'sold' ? (
-              <span className="px-2 py-0.5 rounded bg-rose-950/80 text-rose-400 border border-rose-800 text-[11px] font-black uppercase">
+              <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-black uppercase">
                 Vendido
               </span>
             ) : (
-              <span className="px-2 py-0.5 rounded bg-neon-lime/20 text-neon-green border border-neon-lime/40 text-[11px] font-bold uppercase">
-                Ativo
+              <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold uppercase">
+                Ativo na Feira
               </span>
             )}
           </div>
@@ -158,7 +158,7 @@ export function ManageAdModal({
 
         {/* PIN Input */}
         <div>
-          <label className="block text-xs font-bold text-purple-300 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-1.5">
             Código de Gestão (PIN de 4 dígitos)
           </label>
           <input
@@ -167,21 +167,21 @@ export function ManageAdModal({
             value={pin}
             onChange={e => setPin(e.target.value)}
             placeholder="Digite o PIN do anúncio"
-            className="w-full bg-surface-card border border-purple-700/50 rounded-xl px-3 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-neon-lime tracking-widest text-center text-lg font-bold"
+            className="w-full bg-white border border-purple-300 rounded-xl px-3 py-2.5 text-sm text-purple-950 placeholder-slate-400 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 tracking-widest text-center text-lg font-bold shadow-sm"
           />
         </div>
 
         {/* Messages */}
         {errorMessage && (
-          <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-800/80 text-rose-200 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {successMessage && (
-          <div className="p-3 rounded-xl bg-neon-lime/20 border border-neon-lime/60 text-neon-green text-xs flex items-center gap-2 font-bold">
-            <CheckCircle className="w-4 h-4 shrink-0 text-neon-green" />
+          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2 font-bold">
+            <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600" />
             <span>{successMessage}</span>
           </div>
         )}
@@ -192,7 +192,7 @@ export function ManageAdModal({
             <button
               onClick={() => handleToggleStatus('sold')}
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wide bg-rose-600 hover:bg-rose-500 text-white transition-all shadow-lg shadow-rose-900/30 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+              className="w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wide bg-rose-600 hover:bg-rose-700 text-white transition-all shadow-md shadow-rose-600/25 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
             >
               <CheckCircle className="w-4 h-4" />
               <span>Marcar como Vendido</span>
@@ -201,7 +201,7 @@ export function ManageAdModal({
             <button
               onClick={() => handleToggleStatus('active')}
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wide bg-neon-lime hover:bg-neon-green text-gray-950 transition-all shadow-lg shadow-neon-lime/30 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+              className="w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wide bg-purple-700 hover:bg-purple-800 text-white transition-all shadow-md shadow-purple-700/25 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
             >
               <RotateCcw className="w-4 h-4" />
               <span>Reativar Anúncio</span>
@@ -211,7 +211,7 @@ export function ManageAdModal({
           <button
             onClick={handleDelete}
             disabled={isLoading}
-            className="w-full py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wide bg-surface-card hover:bg-rose-950/40 text-gray-400 hover:text-rose-400 border border-purple-800/40 hover:border-rose-900/60 transition-colors flex items-center justify-center gap-2"
+            className="w-full py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wide bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition-colors flex items-center justify-center gap-2"
           >
             <Trash2 className="w-4 h-4" />
             <span>Excluir Anúncio</span>
