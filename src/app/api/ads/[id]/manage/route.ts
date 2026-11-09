@@ -40,7 +40,13 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json().catch(() => ({}));
+    let body: any = {};
+    try {
+      body = await request.json();
+    } catch (err) {
+      console.warn('DELETE request had no JSON body, falling back to query param:', err);
+      body = {};
+    }
     const pin = body.pin || new URL(request.url).searchParams.get('pin');
 
     if (!pin) {

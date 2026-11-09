@@ -57,8 +57,8 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
           url: window.location.href,
         });
         return;
-      } catch {
-        // Fallback to clipboard
+      } catch (err) {
+        console.warn('Navigator share error, falling back to clipboard:', err);
       }
     }
     navigator.clipboard.writeText(window.location.href);

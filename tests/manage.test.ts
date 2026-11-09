@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { saveAd, updateAdStatus, getAdById, clearLocalStorageForTesting } from '../src/lib/storage';
+import { saveAd, updateAdStatus, deleteAd, getAdById, clearLocalStorageForTesting } from '../src/lib/storage';
 
 describe('Task 7: Ad Management & Status Toggling', () => {
   beforeEach(async () => {
@@ -35,5 +35,45 @@ describe('Task 7: Ad Management & Status Toggling', () => {
 
     const afterReactivate = await getAdById(ad.id);
     expect(afterReactivate?.status).toBe('active');
+  });
+
+  it('should reject status update if wrong PIN is provided', async () => {
+    const ad = await saveAd({
+      title: 'Geladeira Usada Frost Free',
+      description: 'Em funcionamento normal no Guaraú.',
+      price: 600,
+      priceType: 'fixed',
+      category: 'casa_moveis',
+      bairro: 'Guaraú',
+      sellerName: 'Marcos',
+      whatsapp: '13997778899',
+      photos: [],
+      pin: '1234',
+    });
+
+    const res = await updateAdStatus(ad.id, '0000', 'sold');
+    expect(res.success).toBe(false);
+    expect(res.error).toContain('PIN');
+  });
+
+  it('should delete ad permanently when correct PIN is provided', async () => {
+    const ad = await saveAd({
+      title: 'Armário de Cozinha 3 Portas',
+      description: 'Branco em bom estado no Stella Maris.',
+      price: 180,
+      priceType: 'fixed',
+      category: 'casa_moveis',
+      bairro: 'Stella Maris',
+      sellerName: 'Helena',
+      whatsapp: '13998889900',
+      photos: [],
+      pin: '7788',
+    });
+
+    const delRes = await deleteAd(ad.id, '7788');
+    expect(delRes.success).toBe(true);
+
+    const check = await getAdById(ad.id);
+    expect(check).toBeNull();
   });
 });

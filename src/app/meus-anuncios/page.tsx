@@ -34,8 +34,8 @@ export default function MeusAnunciosPage() {
             const data = await res.json();
             setAdStatuses(prev => ({ ...prev, [item.id]: data.ad.status }));
           }
-        } catch {
-          // ignore
+        } catch (err) {
+          console.warn('Failed to fetch status for ad:', item.id, err);
         }
       });
     } catch (e) {
@@ -52,7 +52,9 @@ export default function MeusAnunciosPage() {
     setSavedAds(updated);
     try {
       localStorage.setItem('feira_meus_anuncios', JSON.stringify(updated));
-    } catch {}
+    } catch (err) {
+      console.warn('Failed to update localStorage:', err);
+    }
   };
 
   return (

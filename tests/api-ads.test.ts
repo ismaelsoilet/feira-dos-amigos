@@ -25,13 +25,32 @@ describe('Task 3: Serverless API Routes', () => {
         sellerName: 'Bot',
         whatsapp: '13999999999',
         pin: '1234',
-        website_hp: 'http://spam-link.com', // Honeypot filled!
+        website_hp: 'http://spam-link.com',
       }),
     });
 
     const response = await postAdsRoute(fakeRequest);
     expect(response.status).toBe(400);
     const data = await response.json();
+    expect(data.error).toBeDefined();
+  });
+
+  it('should reject creation if required fields are missing or invalid', async () => {
+    const req = new Request('http://localhost:3000/api/ads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '127.0.0.1' },
+      body: JSON.stringify({
+        title: 'Oi', // Too short (<3)
+        description: '123',
+        category: '',
+        whatsapp: '',
+        pin: '1',
+      }),
+    });
+
+    const res = await postAdsRoute(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
     expect(data.error).toBeDefined();
   });
 
@@ -61,8 +80,14 @@ describe('Task 3: Serverless API Routes', () => {
     expect(data.ad.pinHash).toBeUndefined(); // Don't expose hash in response
   });
 
+  it('should return 404 for non-existent ad via GET /api/ads/[id]', async () => {
+    const res = await getAdByIdRoute(new Request('http://localhost:3000/api/ads/non_existent_id'), {
+      params: Promise.resolve({ id: 'non_existent_id' }),
+    });
+    expect(res.status).toBe(404);
+  });
+
   it('should list ads via GET /api/ads with filtering', async () => {
-    // Create one active ad
     const postReq = new Request('http://localhost:3000/api/ads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '127.0.0.1' },
@@ -89,7 +114,6 @@ describe('Task 3: Serverless API Routes', () => {
   });
 
   it('should mark ad as sold via PATCH /api/ads/[id]/manage with valid PIN', async () => {
-    // 1. Create ad
     const postReq = new Request('http://localhost:3000/api/ads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '127.0.0.1' },
@@ -108,7 +132,6 @@ describe('Task 3: Serverless API Routes', () => {
     const createRes = await postAdsRoute(postReq);
     const { ad } = await createRes.json();
 
-    // 2. Try with wrong PIN
     const wrongPatchReq = new Request(`http://localhost:3000/api/ads/${ad.id}/manage`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -117,7 +140,6 @@ describe('Task 3: Serverless API Routes', () => {
     const wrongRes = await patchManageRoute(wrongPatchReq, { params: Promise.resolve({ id: ad.id }) });
     expect(wrongRes.status).toBe(401);
 
-    // 3. Mark as sold with right PIN
     const patchReq = new Request(`http://localhost:3000/api/ads/${ad.id}/manage`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -126,16 +148,58 @@ describe('Task 3: Serverless API Routes', () => {
     const patchRes = await patchManageRoute(patchReq, { params: Promise.resolve({ id: ad.id }) });
     expect(patchRes.status).toBe(200);
 
-    // 4. Verify in GET route: should be hidden when includeSold is false
     const listRes = await getAdsRoute(new Request('http://localhost:3000/api/ads'));
     const listData = await listRes.json();
     expect(listData.ads.some((a: any) => a.id === ad.id)).toBe(false);
 
-    // 5. Verify in GET route with includeSold=true: should appear with status sold
     const listAllRes = await getAdsRoute(new Request('http://localhost:3000/api/ads?includeSold=true'));
     const listAllData = await listAllRes.json();
     const found = listAllData.ads.find((a: any) => a.id === ad.id);
     expect(found).toBeDefined();
     expect(found.status).toBe('sold');
+  });
+
+  it('should delete ad via DELETE /api/ads/[id]/manage with valid PIN', async () => {
+    const postReq = new Request('http://localhost:3000/api/ads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '127.0.0.1' },
+      body: JSON.stringify({
+        title: 'Mesa de Centro Rústica',
+        description: 'Madeira maciça artesanal.',
+        price: 300,
+        priceType: 'fixed',
+        category: 'casa_moveis',
+        bairro: 'Centro',
+        sellerName: 'Lucas',
+        whatsapp: '13992223344',
+        pin: '2222',
+      }),
+    });
+    const createRes = await postAdsRoute(postReq);
+    const { ad } = await createRes.json();
+
+    // Wrong PIN
+    const wrongDel = new Request(`http://localhost:3000/api/ads/${ad.id}/manage`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin: '9999' }),
+    });
+    const wrongDelRes = await deleteManageRoute(wrongDel, { params: Promise.resolve({ id: ad.id }) });
+    expect(wrongDelRes.status).toBe(401);
+
+    // Correct PIN
+    const rightDel = new Request(`http://localhost:3000/api/ads/${ad.id}/manage`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin: '2222' }),
+    });
+    const rightDelRes = await deleteManageRoute(rightDel, { params: Promise.resolve({ id: ad.id }) });
+    expect(rightDelRes.status).toBe(200);
+
+    // Verify gone
+    const checkRes = await getAdByIdRoute(new Request(`http://localhost:3000/api/ads/${ad.id}`), {
+      params: Promise.resolve({ id: ad.id }),
+    });
+    expect(checkRes.status).toBe(404);
   });
 });

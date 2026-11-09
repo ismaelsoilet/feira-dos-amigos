@@ -1,13 +1,18 @@
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
-import { put } from '@vercel/blob';
+import { put, del, list } from '@vercel/blob';
 import { Ad, AdSummary, CreateAdInput, AdFilters } from '../types/ad';
 
-const LOCAL_DATA_DIR = path.resolve(process.cwd(), 'data/local-ads');
-const LOCAL_INDEX_PATH = path.resolve(process.cwd(), 'data/catalog-index.json');
+// In serverless environments (like Vercel), only /tmp is writable
+const BASE_DATA_PATH = process.env.VERCEL
+  ? path.join('/tmp', 'feira-data')
+  : path.resolve(process.cwd(), 'data');
 
-function isVercelBlobConfigured(): boolean {
+const LOCAL_DATA_DIR = path.join(BASE_DATA_PATH, 'local-ads');
+const LOCAL_INDEX_PATH = path.join(BASE_DATA_PATH, 'catalog-index.json');
+
+export function isVercelBlobConfigured(): boolean {
   return !!process.env.BLOB_READ_WRITE_TOKEN;
 }
 
@@ -16,8 +21,12 @@ export function hashPin(pin: string): string {
 }
 
 function ensureLocalDirs(): void {
-  if (!fs.existsSync(LOCAL_DATA_DIR)) {
-    fs.mkdirSync(LOCAL_DATA_DIR, { recursive: true });
+  try {
+    if (!fs.existsSync(LOCAL_DATA_DIR)) {
+      fs.mkdirSync(LOCAL_DATA_DIR, { recursive: true });
+    }
+  } catch (e) {
+    console.warn('ensureLocalDirs error:', e);
   }
 }
 
@@ -29,14 +38,55 @@ async function readLocalIndex(): Promise<AdSummary[]> {
   try {
     const raw = fs.readFileSync(LOCAL_INDEX_PATH, 'utf-8');
     return JSON.parse(raw);
-  } catch {
+  } catch (err) {
+    console.warn('readLocalIndex parse error, returning empty index:', err);
     return [];
   }
 }
 
 async function writeLocalIndex(index: AdSummary[]): Promise<void> {
   ensureLocalDirs();
-  fs.writeFileSync(LOCAL_INDEX_PATH, JSON.stringify(index, null, 2), 'utf-8');
+  try {
+    fs.writeFileSync(LOCAL_INDEX_PATH, JSON.stringify(index, null, 2), 'utf-8');
+  } catch (e) {
+    console.warn('writeLocalIndex error:', e);
+  }
+}
+
+// Master index loader (Blob-aware with local fallback)
+async function getCatalogIndex(): Promise<AdSummary[]> {
+  if (isVercelBlobConfigured()) {
+    try {
+      const { blobs } = await list({ prefix: 'ads/catalog-index.json', limit: 1 });
+      const indexBlob = blobs.find(b => b.pathname === 'ads/catalog-index.json');
+      if (indexBlob && indexBlob.downloadUrl) {
+        const res = await fetch(indexBlob.downloadUrl, { cache: 'no-store' });
+        if (res.ok) {
+          const remoteData: AdSummary[] = await res.json();
+          await writeLocalIndex(remoteData);
+          return remoteData;
+        }
+      }
+    } catch (err) {
+      console.warn('Error reading catalog-index from Vercel Blob, using local fallback:', err);
+    }
+  }
+  return await readLocalIndex();
+}
+
+async function syncCatalogIndex(index: AdSummary[]): Promise<void> {
+  await writeLocalIndex(index);
+  if (isVercelBlobConfigured()) {
+    try {
+      await put('ads/catalog-index.json', JSON.stringify(index, null, 2), {
+        access: 'public',
+        addRandomSuffix: false,
+        contentType: 'application/json',
+      });
+    } catch (err) {
+      console.warn('Error syncing catalog-index to Vercel Blob:', err);
+    }
+  }
 }
 
 function toSummary(ad: Ad): AdSummary {
@@ -83,6 +133,15 @@ export async function saveAd(input: CreateAdInput): Promise<Ad> {
     updatedAt: now.toISOString(),
   };
 
+  // 1. Write ad to local fallback
+  ensureLocalDirs();
+  try {
+    fs.writeFileSync(path.join(LOCAL_DATA_DIR, `${id}.json`), JSON.stringify(ad, null, 2));
+  } catch (e) {
+    console.warn('Local write error:', e);
+  }
+
+  // 2. Write to Vercel Blob if configured
   if (isVercelBlobConfigured()) {
     try {
       await put(`ads/${id}/ad.json`, JSON.stringify(ad, null, 2), {
@@ -91,19 +150,14 @@ export async function saveAd(input: CreateAdInput): Promise<Ad> {
         contentType: 'application/json',
       });
     } catch (e) {
-      console.warn('Vercel Blob put error, falling back to local file:', e);
-      ensureLocalDirs();
-      fs.writeFileSync(path.join(LOCAL_DATA_DIR, `${id}.json`), JSON.stringify(ad, null, 2));
+      console.warn('Vercel Blob put error:', e);
     }
-  } else {
-    ensureLocalDirs();
-    fs.writeFileSync(path.join(LOCAL_DATA_DIR, `${id}.json`), JSON.stringify(ad, null, 2));
   }
 
-  // Update catalog index
-  const index = await readLocalIndex();
+  // 3. Update master catalog index
+  const index = await getCatalogIndex();
   index.unshift(toSummary(ad));
-  await writeLocalIndex(index);
+  await syncCatalogIndex(index);
 
   return ad;
 }
@@ -115,18 +169,42 @@ export async function getAdById(id: string): Promise<Ad | null> {
     try {
       const data = fs.readFileSync(localFile, 'utf-8');
       return JSON.parse(data);
-    } catch {
-      return null;
+    } catch (err) {
+      console.warn('Local ad read error:', err);
     }
   }
+
+  // If not on local disk, check Vercel Blob
+  if (isVercelBlobConfigured()) {
+    try {
+      const { blobs } = await list({ prefix: `ads/${id}/ad.json`, limit: 1 });
+      const adBlob = blobs.find(b => b.pathname === `ads/${id}/ad.json`);
+      if (adBlob && adBlob.downloadUrl) {
+        const res = await fetch(adBlob.downloadUrl, { cache: 'no-store' });
+        if (res.ok) {
+          const remoteAd: Ad = await res.json();
+          // Cache locally
+          try {
+            fs.writeFileSync(localFile, JSON.stringify(remoteAd, null, 2));
+          } catch (err) {
+            console.warn('Local cache write error:', err);
+          }
+          return remoteAd;
+        }
+      }
+    } catch (e) {
+      console.warn('Vercel Blob fetch error for ad:', e);
+    }
+  }
+
   return null;
 }
 
 export async function getAds(filters?: AdFilters): Promise<AdSummary[]> {
-  const index = await readLocalIndex();
+  const index = await getCatalogIndex();
   const now = new Date().toISOString();
 
-  let filtered = index.filter(ad => {
+  const filtered = index.filter(ad => {
     // Check expiration
     if (ad.expiresAt && ad.expiresAt < now) {
       return false;
@@ -149,6 +227,10 @@ export async function getAds(filters?: AdFilters): Promise<AdSummary[]> {
     }
     // Max price
     if (filters?.maxPrice !== undefined && ad.price > filters.maxPrice) {
+      return false;
+    }
+    // Price type
+    if (filters?.priceType && filters.priceType !== 'all' && ad.priceType !== filters.priceType) {
       return false;
     }
     return true;
@@ -186,15 +268,34 @@ export async function updateAdStatus(
   ad.status = status;
   ad.updatedAt = new Date().toISOString();
 
+  // Save local
   ensureLocalDirs();
-  fs.writeFileSync(path.join(LOCAL_DATA_DIR, `${id}.json`), JSON.stringify(ad, null, 2));
+  const localFile = path.join(LOCAL_DATA_DIR, `${id}.json`);
+  try {
+    fs.writeFileSync(localFile, JSON.stringify(ad, null, 2));
+  } catch (e) {
+    console.warn('Local update error:', e);
+  }
+
+  // Save Blob
+  if (isVercelBlobConfigured()) {
+    try {
+      await put(`ads/${id}/ad.json`, JSON.stringify(ad, null, 2), {
+        access: 'public',
+        addRandomSuffix: false,
+        contentType: 'application/json',
+      });
+    } catch (e) {
+      console.warn('Blob update error:', e);
+    }
+  }
 
   // Update index
-  const index = await readLocalIndex();
+  const index = await getCatalogIndex();
   const itemIndex = index.findIndex(a => a.id === id);
   if (itemIndex !== -1) {
     index[itemIndex].status = status;
-    await writeLocalIndex(index);
+    await syncCatalogIndex(index);
   }
 
   return { success: true };
@@ -213,28 +314,50 @@ export async function deleteAd(
     return { success: false, error: 'PIN de segurança incorreto.' };
   }
 
+  // Delete local file
   ensureLocalDirs();
-  const filePath = path.join(LOCAL_DATA_DIR, `${id}.json`);
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
+  const localFile = path.join(LOCAL_DATA_DIR, `${id}.json`);
+  if (fs.existsSync(localFile)) {
+    try {
+      fs.unlinkSync(localFile);
+    } catch (e) {
+      console.warn('Local delete error:', e);
+    }
   }
 
-  const index = await readLocalIndex();
+  // Delete Blob if configured
+  if (isVercelBlobConfigured()) {
+    try {
+      const { blobs } = await list({ prefix: `ads/${id}/` });
+      if (blobs.length > 0) {
+        await del(blobs.map(b => b.url));
+      }
+    } catch (e) {
+      console.warn('Blob delete error:', e);
+    }
+  }
+
+  // Remove from catalog index
+  const index = await getCatalogIndex();
   const filtered = index.filter(a => a.id !== id);
-  await writeLocalIndex(filtered);
+  await syncCatalogIndex(filtered);
 
   return { success: true };
 }
 
 export async function clearLocalStorageForTesting(): Promise<void> {
   ensureLocalDirs();
-  if (fs.existsSync(LOCAL_DATA_DIR)) {
-    const files = fs.readdirSync(LOCAL_DATA_DIR);
-    for (const f of files) {
-      fs.unlinkSync(path.join(LOCAL_DATA_DIR, f));
+  try {
+    if (fs.existsSync(LOCAL_DATA_DIR)) {
+      const files = fs.readdirSync(LOCAL_DATA_DIR);
+      for (const f of files) {
+        fs.unlinkSync(path.join(LOCAL_DATA_DIR, f));
+      }
     }
-  }
-  if (fs.existsSync(LOCAL_INDEX_PATH)) {
-    fs.unlinkSync(LOCAL_INDEX_PATH);
+    if (fs.existsSync(LOCAL_INDEX_PATH)) {
+      fs.unlinkSync(LOCAL_INDEX_PATH);
+    }
+  } catch (e) {
+    console.warn('clearLocalStorageForTesting error:', e);
   }
 }
