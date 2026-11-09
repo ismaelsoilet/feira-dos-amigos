@@ -10,7 +10,7 @@ export async function PUT(
     const body = await request.json();
     const cleanPin = String(body.pin || '').trim();
 
-    if (!cleanPin || !/^[a-zA-Z0-9]{6}$/.test(cleanPin)) {
+    if (!cleanPin || !/^[a-zA-Z0-9]{4,6}$/.test(cleanPin)) {
       return NextResponse.json({ error: 'Informe o PIN de 6 caracteres (letras e números).' }, { status: 400 });
     }
 
@@ -43,7 +43,7 @@ export async function PATCH(
     const body = await request.json();
     const cleanPin = String(body.pin || '').trim();
 
-    if (!cleanPin || !/^[a-zA-Z0-9]{6}$/.test(cleanPin)) {
+    if (!cleanPin || !/^[a-zA-Z0-9]{4,6}$/.test(cleanPin)) {
       return NextResponse.json({ error: 'Informe o PIN de 6 caracteres (letras e números).' }, { status: 400 });
     }
 
@@ -84,7 +84,7 @@ export async function DELETE(
     const pin = body.pin || new URL(request.url).searchParams.get('pin');
     const cleanPin = String(pin || '').trim();
 
-    if (!cleanPin || !/^[a-zA-Z0-9]{6}$/.test(cleanPin)) {
+    if (!cleanPin || !/^[a-zA-Z0-9]{4,6}$/.test(cleanPin)) {
       return NextResponse.json({ error: 'Informe o PIN de 6 caracteres (letras e números).' }, { status: 400 });
     }
 

@@ -64,5 +64,4 @@ describe('Task 6: Ad Creation & Image Helpers', () => {
     expect(validateAdForm({ title: 'Item', description: 'Descricao longa', whatsapp: '13997123456', category: 'outros', bairro: 'Centro', pin: '123456' }).isValid).toBe(true);
     expect(isValidPin('ABC123')).toBe(true);
   });
-  });
 });

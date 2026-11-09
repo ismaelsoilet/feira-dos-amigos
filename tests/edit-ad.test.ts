@@ -122,7 +122,7 @@ describe('Edit Ad with PIN (TDD Red-Green-Refactor)', () => {
     expect(json.ad.price).toBe(450);
   });
 
-  it('returns 400 on PUT /api/ads/[id]/manage with invalid PIN format (<6 characters)', async () => {
+  it('returns 400 on PUT /api/ads/[id]/manage with invalid PIN format (<4 characters or symbols)', async () => {
     const ad = await saveAd({
       title: 'Mesa Dobrável',
       description: 'Mesa de praia.',
@@ -139,7 +139,7 @@ describe('Edit Ad with PIN (TDD Red-Green-Refactor)', () => {
     const req = new NextRequest(`http://localhost:3000/api/ads/${ad.id}/manage`, {
       method: 'PUT',
       body: JSON.stringify({
-        pin: '1234', // Only 4 digits
+        pin: '12', // Too short
         title: 'Tentativa Invalida',
       }),
     });
