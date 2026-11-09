@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatPhoneInput, validateAdForm } from '../src/lib/compress-image';
+import { formatPhoneInput, validateAdForm, isValidPin } from '../src/lib/compress-image';
 
 describe('Task 6: Ad Creation & Image Helpers', () => {
   it('should format WhatsApp input with (13) mask automatically for 8 or 9 digits', () => {
@@ -32,16 +32,37 @@ describe('Task 6: Ad Creation & Image Helpers', () => {
     expect(invalid.errors.pin).toBeDefined();
   });
 
-  it('should accept valid form data', () => {
+  it('should accept valid form data with 6-character alphanumeric PIN', () => {
     const valid = validateAdForm({
       title: 'Bicicleta Infantil Aro 16',
       description: 'Bicicleta rosa em ótimo estado no Centro.',
       whatsapp: '13997123456',
       category: 'veiculos',
       bairro: 'Centro',
-      pin: '1234',
+      pin: 'ABC123',
     });
     expect(valid.isValid).toBe(true);
     expect(Object.keys(valid.errors).length).toBe(0);
+  });
+
+  it('should reject PINs that are not exactly 6 alphanumeric characters', () => {
+    // Empty or falsy PINs
+    expect(isValidPin('')).toBe(false);
+    expect(isValidPin('      ')).toBe(false);
+    expect(validateAdForm({ title: 'Item', description: 'Descricao longa', whatsapp: '13997123456', category: 'outros', bairro: 'Centro', pin: '' }).isValid).toBe(false);
+    // 4 digits (old format)
+    expect(validateAdForm({ title: 'Item', description: 'Descricao longa', whatsapp: '13997123456', category: 'outros', bairro: 'Centro', pin: '1234' }).isValid).toBe(false);
+    // 5 chars
+    expect(validateAdForm({ title: 'Item', description: 'Descricao longa', whatsapp: '13997123456', category: 'outros', bairro: 'Centro', pin: 'ABC12' }).isValid).toBe(false);
+    // 7 chars
+    expect(validateAdForm({ title: 'Item', description: 'Descricao longa', whatsapp: '13997123456', category: 'outros', bairro: 'Centro', pin: 'ABC1234' }).isValid).toBe(false);
+    // Special symbols
+    expect(validateAdForm({ title: 'Item', description: 'Descricao longa', whatsapp: '13997123456', category: 'outros', bairro: 'Centro', pin: 'AB@123' }).isValid).toBe(false);
+    // 6 letters only -> valid
+    expect(validateAdForm({ title: 'Item', description: 'Descricao longa', whatsapp: '13997123456', category: 'outros', bairro: 'Centro', pin: 'ABCDEF' }).isValid).toBe(true);
+    // 6 digits only -> valid
+    expect(validateAdForm({ title: 'Item', description: 'Descricao longa', whatsapp: '13997123456', category: 'outros', bairro: 'Centro', pin: '123456' }).isValid).toBe(true);
+    expect(isValidPin('ABC123')).toBe(true);
+  });
   });
 });

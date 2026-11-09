@@ -63,8 +63,12 @@ export async function POST(request: Request) {
     if (!body.whatsapp || body.whatsapp.replace(/\D/g, '').length < 10) {
       return NextResponse.json({ error: 'WhatsApp inválido (mínimo 10 dígitos com DDD).' }, { status: 400 });
     }
-    if (!body.pin || String(body.pin).trim().length < 4) {
-      return NextResponse.json({ error: 'PIN de segurança deve ter pelo menos 4 dígitos.' }, { status: 400 });
+    const cleanPin = String(body.pin || '').trim();
+    if (!cleanPin || !/^[a-zA-Z0-9]{6}$/.test(cleanPin)) {
+      return NextResponse.json(
+        { error: 'PIN de segurança deve ter exatamente 6 caracteres (letras e números).' },
+        { status: 400 }
+      );
     }
     if (!body.category) {
       return NextResponse.json({ error: 'Selecione uma categoria.' }, { status: 400 });

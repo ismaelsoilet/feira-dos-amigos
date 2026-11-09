@@ -17,7 +17,7 @@ export function isVercelBlobConfigured(): boolean {
 }
 
 export function hashPin(pin: string): string {
-  return crypto.createHash('sha256').update(pin.trim()).digest('hex');
+  return crypto.createHash('sha256').update(pin.trim().toUpperCase()).digest('hex');
 }
 
 function ensureLocalDirs(): void {

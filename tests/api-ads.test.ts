@@ -24,7 +24,7 @@ describe('Task 3: Serverless API Routes', () => {
         bairro: 'Centro',
         sellerName: 'Bot',
         whatsapp: '13999999999',
-        pin: '1234',
+        pin: 'ABC123',
         website_hp: 'http://spam-link.com',
       }),
     });
@@ -68,7 +68,7 @@ describe('Task 3: Serverless API Routes', () => {
         sellerName: 'Mariana',
         whatsapp: '13998887766',
         photos: [],
-        pin: '4321',
+        pin: 'ABC432',
       }),
     });
 
@@ -100,7 +100,7 @@ describe('Task 3: Serverless API Routes', () => {
         bairro: 'Centro',
         sellerName: 'José',
         whatsapp: '13991112233',
-        pin: '1111',
+        pin: 'PERU13',
       }),
     });
     await postAdsRoute(postReq);
@@ -126,7 +126,7 @@ describe('Task 3: Serverless API Routes', () => {
         bairro: 'Stella Maris',
         sellerName: 'Pedro',
         whatsapp: '13995554433',
-        pin: '9876',
+        pin: 'FEIR98',
       }),
     });
     const createRes = await postAdsRoute(postReq);
@@ -135,7 +135,7 @@ describe('Task 3: Serverless API Routes', () => {
     const wrongPatchReq = new Request(`http://localhost:3000/api/ads/${ad.id}/manage`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: '0000', status: 'sold' }),
+      body: JSON.stringify({ pin: '000000', status: 'sold' }),
     });
     const wrongRes = await patchManageRoute(wrongPatchReq, { params: Promise.resolve({ id: ad.id }) });
     expect(wrongRes.status).toBe(401);
@@ -143,7 +143,7 @@ describe('Task 3: Serverless API Routes', () => {
     const patchReq = new Request(`http://localhost:3000/api/ads/${ad.id}/manage`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: '9876', status: 'sold' }),
+      body: JSON.stringify({ pin: 'feir98', status: 'sold' }), // case-insensitive test!
     });
     const patchRes = await patchManageRoute(patchReq, { params: Promise.resolve({ id: ad.id }) });
     expect(patchRes.status).toBe(200);
@@ -172,7 +172,7 @@ describe('Task 3: Serverless API Routes', () => {
         bairro: 'Centro',
         sellerName: 'Lucas',
         whatsapp: '13992223344',
-        pin: '2222',
+        pin: 'XYZ222',
       }),
     });
     const createRes = await postAdsRoute(postReq);
@@ -182,7 +182,7 @@ describe('Task 3: Serverless API Routes', () => {
     const wrongDel = new Request(`http://localhost:3000/api/ads/${ad.id}/manage`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: '9999' }),
+      body: JSON.stringify({ pin: '999999' }),
     });
     const wrongDelRes = await deleteManageRoute(wrongDel, { params: Promise.resolve({ id: ad.id }) });
     expect(wrongDelRes.status).toBe(401);
@@ -191,7 +191,7 @@ describe('Task 3: Serverless API Routes', () => {
     const rightDel = new Request(`http://localhost:3000/api/ads/${ad.id}/manage`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: '2222' }),
+      body: JSON.stringify({ pin: 'XYZ222' }),
     });
     const rightDelRes = await deleteManageRoute(rightDel, { params: Promise.resolve({ id: ad.id }) });
     expect(rightDelRes.status).toBe(200);

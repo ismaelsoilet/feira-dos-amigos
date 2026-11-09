@@ -1,0 +1,10 @@
+{
+  "target": "compress-image.ts",
+  "killed": 10,
+  "survived": 0,
+  "timed_out": 0,
+  "total": 10,
+  "score": 100.0,
+  "verdict": "READY",
+  "timestamp": "2026-11-09T09:45:21.121031"
+}

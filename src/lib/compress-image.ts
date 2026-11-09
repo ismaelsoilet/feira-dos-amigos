@@ -27,6 +27,11 @@ export interface AdFormValidation {
   pin?: string;
 }
 
+export function isValidPin(pin: string): boolean {
+  if (!pin) return false;
+  return /^[a-zA-Z0-9]{6}$/.test(pin.trim());
+}
+
 export function validateAdForm(form: {
   title?: string;
   description?: string;
@@ -58,8 +63,8 @@ export function validateAdForm(form: {
     errors.bairro = 'Selecione o bairro de Peruíbe.';
   }
 
-  if (!form.pin || form.pin.trim().length < 4) {
-    errors.pin = 'PIN deve ter pelo menos 4 dígitos para gerenciar o anúncio.';
+  if (!form.pin || !isValidPin(form.pin)) {
+    errors.pin = 'PIN deve ter exatamente 6 caracteres (letras e números permitidos).';
   }
 
   return {

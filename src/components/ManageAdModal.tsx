@@ -104,8 +104,8 @@ export function ManageAdModal({
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pin || pin.trim().length < 4) {
-      setErrorMessage('Digite o PIN de 4 dígitos cadastrado na criação do anúncio.');
+    if (!pin || !/^[a-zA-Z0-9]{6}$/.test(pin.trim())) {
+      setErrorMessage('Digite o PIN de 6 caracteres (letras e números).');
       return;
     }
 
@@ -167,8 +167,8 @@ export function ManageAdModal({
   };
 
   const handleToggleStatus = async (targetStatus: 'active' | 'sold') => {
-    if (!pin || pin.trim().length < 4) {
-      setErrorMessage('Digite o PIN de 4 dígitos cadastrado na criação do anúncio.');
+    if (!pin || !/^[a-zA-Z0-9]{6}$/.test(pin.trim())) {
+      setErrorMessage('Digite o PIN de 6 caracteres (letras e números).');
       return;
     }
 
@@ -204,8 +204,8 @@ export function ManageAdModal({
   };
 
   const handleDelete = async () => {
-    if (!pin || pin.trim().length < 4) {
-      setErrorMessage('Digite o PIN para confirmar a exclusão.');
+    if (!pin || !/^[a-zA-Z0-9]{6}$/.test(pin.trim())) {
+      setErrorMessage('Digite o PIN de 6 caracteres para confirmar a exclusão.');
       return;
     }
 
@@ -450,16 +450,16 @@ export function ManageAdModal({
               {/* PIN Confirmation */}
               <div className="p-3.5 bg-purple-50/80 rounded-2xl border border-purple-200">
                 <label className="block text-xs font-black text-purple-950 uppercase tracking-wider mb-1">
-                  PIN de Segurança Cadastrado (4 dígitos) *
+                  PIN de Segurança Cadastrado (6 caracteres: letras e números) *
                 </label>
                 <input
-                  type="password"
+                  type="text"
                   maxLength={6}
                   required
                   value={pin}
-                  onChange={e => setPin(e.target.value)}
-                  placeholder="PIN de 4 dígitos"
-                  className="w-full bg-white border border-purple-300 rounded-xl px-3 py-2 text-center text-lg font-black tracking-widest text-purple-950 focus:outline-none focus:border-purple-600"
+                  onChange={e => setPin(e.target.value.toUpperCase())}
+                  placeholder="Ex: ABC123"
+                  className="w-full bg-white border border-purple-300 rounded-xl px-3 py-2 text-center text-lg font-mono font-black tracking-widest text-purple-950 focus:outline-none focus:border-purple-600 uppercase"
                 />
                 <span className="text-[11px] text-purple-700/80 mt-1 block">
                   Necessário para autenticar que você é o proprietário do anúncio.
@@ -508,15 +508,15 @@ export function ManageAdModal({
               {/* PIN Input */}
               <div>
                 <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-1.5">
-                  Código de Gestão (PIN de 4 dígitos)
+                  Código de Gestão (PIN de 6 caracteres: letras e números)
                 </label>
                 <input
-                  type="password"
+                  type="text"
                   maxLength={6}
                   value={pin}
-                  onChange={e => setPin(e.target.value)}
-                  placeholder="Digite o PIN do anúncio"
-                  className="w-full bg-white border border-purple-300 rounded-xl px-3 py-2.5 text-sm text-purple-950 placeholder-slate-400 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 tracking-widest text-center text-lg font-bold shadow-sm"
+                  onChange={e => setPin(e.target.value.toUpperCase())}
+                  placeholder="Ex: ABC123"
+                  className="w-full bg-white border border-purple-300 rounded-xl px-3 py-2.5 text-sm text-purple-950 placeholder-slate-400 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 tracking-widest text-center text-lg font-mono font-bold shadow-sm uppercase"
                 />
               </div>
 

@@ -25,11 +25,11 @@ describe('Edit Ad with PIN (TDD Red-Green-Refactor)', () => {
       sellerName: 'Roberto',
       whatsapp: '13998881111',
       photos: [],
-      pin: '4321',
+      pin: 'EDT432',
     });
 
     const result = await updateAd(ad.id, {
-      pin: '9999',
+      pin: 'WRONG9',
       title: 'Tentativa de Hack',
       price: 10,
     });
@@ -43,7 +43,7 @@ describe('Edit Ad with PIN (TDD Red-Green-Refactor)', () => {
     expect(unchanged?.price).toBe(120);
   });
 
-  it('updates ad fields successfully when correct PIN is provided and syncs catalog index', async () => {
+  it('updates ad fields successfully when correct 6-character alphanumeric PIN is provided and syncs catalog index', async () => {
     const ad = await saveAd({
       title: 'Prancha de Bodyboard',
       description: 'Ótima para pegar onda no Guaraú.',
@@ -54,11 +54,11 @@ describe('Edit Ad with PIN (TDD Red-Green-Refactor)', () => {
       sellerName: 'Lucas',
       whatsapp: '13998882222',
       photos: ['/logo.jpg'],
-      pin: '7777',
+      pin: 'XYZ777',
     });
 
     const result = await updateAd(ad.id, {
-      pin: '7777',
+      pin: 'XYZ777',
       title: 'Prancha de Bodyboard Genesis Profissional',
       price: 130,
       priceType: 'negotiable',
@@ -89,7 +89,7 @@ describe('Edit Ad with PIN (TDD Red-Green-Refactor)', () => {
     expect(sum?.bairro).toBe('Stella Maris');
   });
 
-  it('handles PUT /api/ads/[id]/manage route with valid PIN', async () => {
+  it('handles PUT /api/ads/[id]/manage route with valid 6-char alphanumeric PIN (case-insensitive)', async () => {
     const ad = await saveAd({
       title: 'Violão Di Giorgio Clássico',
       description: 'Com capa acolchoada.',
@@ -100,13 +100,14 @@ describe('Edit Ad with PIN (TDD Red-Green-Refactor)', () => {
       sellerName: 'Júlia',
       whatsapp: '13998884444',
       photos: [],
-      pin: '5555',
+      pin: 'VIO555',
     });
 
+    // Provide lowercase 'vio555' to test case-insensitivity
     const req = new NextRequest(`http://localhost:3000/api/ads/${ad.id}/manage`, {
       method: 'PUT',
       body: JSON.stringify({
-        pin: '5555',
+        pin: 'vio555',
         title: 'Violão Di Giorgio Clássico (Impecável)',
         price: 450,
       }),
@@ -121,7 +122,7 @@ describe('Edit Ad with PIN (TDD Red-Green-Refactor)', () => {
     expect(json.ad.price).toBe(450);
   });
 
-  it('returns 401 on PUT /api/ads/[id]/manage with wrong PIN', async () => {
+  it('returns 400 on PUT /api/ads/[id]/manage with invalid PIN format (<6 characters)', async () => {
     const ad = await saveAd({
       title: 'Mesa Dobrável',
       description: 'Mesa de praia.',
@@ -132,13 +133,42 @@ describe('Edit Ad with PIN (TDD Red-Green-Refactor)', () => {
       sellerName: 'Ana',
       whatsapp: '13998885555',
       photos: [],
-      pin: '1111',
+      pin: 'TAB111',
     });
 
     const req = new NextRequest(`http://localhost:3000/api/ads/${ad.id}/manage`, {
       method: 'PUT',
       body: JSON.stringify({
-        pin: '0000',
+        pin: '1234', // Only 4 digits
+        title: 'Tentativa Invalida',
+      }),
+    });
+
+    const res = await putManageRoute(req, { params: Promise.resolve({ id: ad.id }) });
+    expect(res.status).toBe(400);
+
+    const json = await res.json();
+    expect(json.error).toContain('6 caracteres');
+  });
+
+  it('returns 401 on PUT /api/ads/[id]/manage with wrong 6-character PIN', async () => {
+    const ad = await saveAd({
+      title: 'Mesa Dobrável',
+      description: 'Mesa de praia.',
+      price: 50,
+      priceType: 'fixed',
+      category: 'casa_moveis',
+      bairro: 'Centro',
+      sellerName: 'Ana',
+      whatsapp: '13998885555',
+      photos: [],
+      pin: 'TAB111',
+    });
+
+    const req = new NextRequest(`http://localhost:3000/api/ads/${ad.id}/manage`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        pin: 'ERR999',
         title: 'Tentativa Invalida',
       }),
     });

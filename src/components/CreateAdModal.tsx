@@ -444,19 +444,19 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
 
                 <div>
                   <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider mb-1">
-                    Crie um PIN (4 dígitos) *
+                    Crie um PIN (6 caracteres) *
                   </label>
                   <input
-                    type="password"
+                    type="text"
                     maxLength={6}
                     required
                     value={pin}
-                    onChange={e => setPin(e.target.value)}
-                    placeholder="Ex: 1234"
-                    className="w-full bg-white border border-purple-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-purple-600"
+                    onChange={e => setPin(e.target.value.toUpperCase())}
+                    placeholder="Ex: ABC123"
+                    className="w-full bg-white border border-purple-200 rounded-xl px-3 py-2.5 text-sm font-mono font-bold tracking-widest text-slate-900 placeholder-slate-400 focus:outline-none focus:border-purple-600 uppercase"
                   />
                   <span className="text-[10px] text-slate-500 block mt-1">
-                    Usado para marcar como vendido ou excluir.
+                    Exatamente 6 caracteres (letras e números permitidos).
                   </span>
                 </div>
               </div>

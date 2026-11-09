@@ -8,14 +8,15 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
+    const cleanPin = String(body.pin || '').trim();
 
-    if (!body.pin || String(body.pin).trim().length < 4) {
-      return NextResponse.json({ error: 'Informe o PIN de 4 dígitos.' }, { status: 400 });
+    if (!cleanPin || !/^[a-zA-Z0-9]{6}$/.test(cleanPin)) {
+      return NextResponse.json({ error: 'Informe o PIN de 6 caracteres (letras e números).' }, { status: 400 });
     }
 
     const result = await updateAd(id, {
       ...body,
-      pin: String(body.pin).trim(),
+      pin: cleanPin,
     });
 
     if (!result.success) {
@@ -40,16 +41,17 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
+    const cleanPin = String(body.pin || '').trim();
 
-    if (!body.pin) {
-      return NextResponse.json({ error: 'Informe o PIN de 4 dígitos.' }, { status: 400 });
+    if (!cleanPin || !/^[a-zA-Z0-9]{6}$/.test(cleanPin)) {
+      return NextResponse.json({ error: 'Informe o PIN de 6 caracteres (letras e números).' }, { status: 400 });
     }
 
     if (body.status !== 'active' && body.status !== 'sold') {
       return NextResponse.json({ error: 'Status inválido. Use "active" ou "sold".' }, { status: 400 });
     }
 
-    const result = await updateAdStatus(id, String(body.pin).trim(), body.status);
+    const result = await updateAdStatus(id, cleanPin, body.status);
 
     if (!result.success) {
       return NextResponse.json({ error: result.error || 'Não autorizado.' }, { status: 401 });
@@ -80,12 +82,13 @@ export async function DELETE(
       body = {};
     }
     const pin = body.pin || new URL(request.url).searchParams.get('pin');
+    const cleanPin = String(pin || '').trim();
 
-    if (!pin) {
-      return NextResponse.json({ error: 'Informe o PIN de segurança.' }, { status: 400 });
+    if (!cleanPin || !/^[a-zA-Z0-9]{6}$/.test(cleanPin)) {
+      return NextResponse.json({ error: 'Informe o PIN de 6 caracteres (letras e números).' }, { status: 400 });
     }
 
-    const result = await deleteAd(id, String(pin).trim());
+    const result = await deleteAd(id, cleanPin);
 
     if (!result.success) {
       return NextResponse.json({ error: result.error || 'Não autorizado.' }, { status: 401 });
