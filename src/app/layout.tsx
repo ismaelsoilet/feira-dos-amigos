@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://feiradosamigos.vercel.app'),
   title: 'Feira dos Amigos | Peruíbe — Vendas e Trocas',
   description: 'Classificados e feira comunitária de servidores e moradores de Peruíbe. Publique grátis, compre, venda e troque com contato direto no WhatsApp.',
   icons: {

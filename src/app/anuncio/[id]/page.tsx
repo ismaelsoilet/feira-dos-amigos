@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { getAdById } from '@/lib/storage';
-import { formatPrice } from '@/components/AdCard';
+import { formatPrice } from '@/lib/ad-helpers';
 import { ClientAdDetails } from './ClientAdDetails';
 
 export async function generateMetadata({
@@ -29,7 +29,6 @@ export async function generateMetadata({
   const imageUrl = `${siteUrl}/api/ads/${ad.id}/image`;
 
   return {
-    metadataBase: new URL(siteUrl),
     title,
     description,
     openGraph: {
