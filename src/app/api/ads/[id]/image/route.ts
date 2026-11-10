@@ -3,6 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import { getAdById } from '@/lib/storage';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -25,7 +28,7 @@ export async function GET(
             headers: {
               'Content-Type': mimeType,
               'Content-Length': buffer.length.toString(),
-              'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
+              'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=300',
             },
           });
         }
@@ -46,7 +49,7 @@ export async function GET(
         headers: {
           'Content-Type': 'image/jpeg',
           'Content-Length': buffer.length.toString(),
-          'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+          'Cache-Control': 'public, max-age=300, s-maxage=600',
         },
       });
     }

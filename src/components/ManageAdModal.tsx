@@ -104,8 +104,11 @@ export function ManageAdModal({
       setPin(initialPin);
     }
 
-    // Attempt to preload full ad data if available
-    fetch(`/api/ads/${adId}`)
+    // Attempt to preload full ad data if available (bypassing any browser cache)
+    fetch(`/api/ads/${adId}?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store' },
+    })
       .then(res => res.json())
       .then(data => {
         if (data.ad) {
@@ -128,7 +131,7 @@ export function ManageAdModal({
 
   if (!isOpen) return null;
 
-  // Photo handlers
+  // Photo handlers (parallel processing, fast 960px WebP compression)
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const files = Array.from(e.target.files);
@@ -140,15 +143,14 @@ export function ManageAdModal({
     setIsCompressing(true);
     setErrorMessage('');
     try {
-      const compressedList: string[] = [];
-      for (const file of files) {
-        const compressed = await compressImage(file, 1200, 0.75);
-        if (compressed) compressedList.push(compressed);
-      }
-      setPhotos(prev => [...prev, ...compressedList]);
+      const compressedList = await Promise.all(
+        files.map(file => compressImage(file, 960, 0.72))
+      );
+      const valid = compressedList.filter(Boolean);
+      setPhotos(prev => [...prev, ...valid].slice(0, 5));
     } catch (err) {
       console.error(err);
-      setErrorMessage('Erro ao comprimir fotos. Tente novamente.');
+      setErrorMessage('Erro ao processar fotos. Tente novamente.');
     } finally {
       setIsCompressing(false);
     }

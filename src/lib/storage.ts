@@ -170,16 +170,8 @@ export async function saveAd(input: CreateAdInput): Promise<Ad> {
 export async function getAdById(id: string): Promise<Ad | null> {
   ensureLocalDirs();
   const localFile = path.join(LOCAL_DATA_DIR, `${id}.json`);
-  if (fs.existsSync(localFile)) {
-    try {
-      const data = fs.readFileSync(localFile, 'utf-8');
-      return JSON.parse(data);
-    } catch (err) {
-      console.warn('Local ad read error:', err);
-    }
-  }
 
-  // If not on local disk, check Vercel Blob
+  // 1. When Vercel Blob is configured (production), read the shared distributed storage first
   if (isVercelBlobConfigured()) {
     try {
       const { blobs } = await list({ prefix: `ads/${id}/`, limit: 5 });
@@ -189,7 +181,7 @@ export async function getAdById(id: string): Promise<Ad | null> {
         const res = await fetch(cacheBustedUrl, { cache: 'no-store' });
         if (res.ok) {
           const remoteAd: Ad = await res.json();
-          // Cache locally
+          // Cache locally on this container
           try {
             fs.writeFileSync(localFile, JSON.stringify(remoteAd, null, 2));
           } catch (err) {
@@ -200,6 +192,16 @@ export async function getAdById(id: string): Promise<Ad | null> {
       }
     } catch (e) {
       console.warn('Vercel Blob fetch error for ad:', e);
+    }
+  }
+
+  // 2. Local disk (dev / tests / offline fallback)
+  if (fs.existsSync(localFile)) {
+    try {
+      const data = fs.readFileSync(localFile, 'utf-8');
+      return JSON.parse(data);
+    } catch (err) {
+      console.warn('Local ad read error:', err);
     }
   }
 

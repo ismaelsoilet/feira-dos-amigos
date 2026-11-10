@@ -66,8 +66,11 @@ export function AdDetailModal({
       console.warn('Failed to record ad view:', err);
     });
 
-    // Fetch full ad to get all photos array & latest stats
-    fetch(`/api/ads/${ad.id}`)
+    // Fetch full ad to get all photos array & latest stats (bypassing browser cache)
+    fetch(`/api/ads/${ad.id}?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store' },
+    })
       .then(res => res.json())
       .then(data => {
         if (data.ad) {

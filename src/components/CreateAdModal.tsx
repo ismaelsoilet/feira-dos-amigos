@@ -44,12 +44,11 @@ export function CreateAdModal({ isOpen, onClose, onSuccess }: CreateAdModalProps
 
     setIsCompressing(true);
     try {
-      const compressedList: string[] = [];
-      for (const file of files) {
-        const compressed = await compressImage(file, 1200, 0.75);
-        if (compressed) compressedList.push(compressed);
-      }
-      setPhotos(prev => [...prev, ...compressedList]);
+      const compressedList = await Promise.all(
+        files.map(file => compressImage(file, 960, 0.72))
+      );
+      const valid = compressedList.filter(Boolean);
+      setPhotos(prev => [...prev, ...valid].slice(0, 5));
     } catch (err) {
       console.error(err);
       alert('Erro ao processar as fotos. Tente novamente.');

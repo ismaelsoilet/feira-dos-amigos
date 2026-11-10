@@ -7,6 +7,9 @@ import { getAdById } from '@/lib/storage';
 import { formatPrice } from '@/lib/ad-helpers';
 import { ClientAdDetails } from './ClientAdDetails';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function generateMetadata({
   params,
 }: {
