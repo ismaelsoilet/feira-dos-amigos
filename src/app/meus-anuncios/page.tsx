@@ -25,11 +25,22 @@ export default function MeusAnunciosPage() {
       const items = JSON.parse(localStorage.getItem('feira_meus_anuncios') || '[]');
       setSavedAds(items);
 
-      // Fetch live statuses
+      // Fetch live statuses and auto-clean deleted ads
       items.forEach(async (item: SavedAdItem) => {
         try {
-          const res = await fetch(`/api/ads/${item.id}`);
-          if (res.ok) {
+          const res = await fetch(`/api/ads/${item.id}?_t=${Date.now()}`, {
+            cache: 'no-store',
+          });
+          if (res.status === 404) {
+            // Ad was deleted, remove from state and localStorage
+            setSavedAds(prev => {
+              const cleaned = prev.filter(a => a.id !== item.id);
+              try {
+                localStorage.setItem('feira_meus_anuncios', JSON.stringify(cleaned));
+              } catch (_) {}
+              return cleaned;
+            });
+          } else if (res.ok) {
             const data = await res.json();
             setAdStatuses(prev => ({ ...prev, [item.id]: data.ad.status }));
           }

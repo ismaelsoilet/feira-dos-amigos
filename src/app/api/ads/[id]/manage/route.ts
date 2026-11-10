@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { updateAdStatus, updateAd, deleteAd } from '@/lib/storage';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function PUT(
   request: Request,
@@ -23,11 +27,27 @@ export async function PUT(
       return NextResponse.json({ error: result.error || 'Não autorizado.' }, { status: 401 });
     }
 
-    return NextResponse.json({
-      success: true,
-      ad: result.ad,
-      message: 'Anúncio atualizado com sucesso!',
-    });
+    try {
+      if (process.env.NODE_ENV !== 'test') {
+        revalidatePath('/');
+        revalidatePath(`/anuncio/${id}`);
+      }
+    } catch (e) {
+      // Ignored outside Next.js server context
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        ad: result.ad,
+        message: 'Anúncio atualizado com sucesso!',
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error editing ad:', error);
     return NextResponse.json({ error: 'Erro ao editar anúncio.' }, { status: 500 });
@@ -57,11 +77,27 @@ export async function PATCH(
       return NextResponse.json({ error: result.error || 'Não autorizado.' }, { status: 401 });
     }
 
-    return NextResponse.json({
-      success: true,
-      status: body.status,
-      message: body.status === 'sold' ? 'Anúncio marcado como Vendido com sucesso!' : 'Anúncio reativado!',
-    });
+    try {
+      if (process.env.NODE_ENV !== 'test') {
+        revalidatePath('/');
+        revalidatePath(`/anuncio/${id}`);
+      }
+    } catch (e) {
+      // Ignored outside Next.js server context
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        status: body.status,
+        message: body.status === 'sold' ? 'Anúncio marcado como Vendido com sucesso!' : 'Anúncio reativado!',
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error updating ad status:', error);
     return NextResponse.json({ error: 'Erro ao gerenciar anúncio.' }, { status: 500 });
@@ -94,10 +130,26 @@ export async function DELETE(
       return NextResponse.json({ error: result.error || 'Não autorizado.' }, { status: 401 });
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Anúncio excluído com sucesso.',
-    });
+    try {
+      if (process.env.NODE_ENV !== 'test') {
+        revalidatePath('/');
+        revalidatePath(`/anuncio/${id}`);
+      }
+    } catch (e) {
+      // Ignored outside Next.js server context
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Anúncio excluído com sucesso.',
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error deleting ad:', error);
     return NextResponse.json({ error: 'Erro ao excluir anúncio.' }, { status: 500 });

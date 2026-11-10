@@ -60,7 +60,8 @@ async function getCatalogIndex(): Promise<AdSummary[]> {
       const { blobs } = await list({ prefix: 'ads/catalog-index.json', limit: 1 });
       const indexBlob = blobs.find(b => b.pathname === 'ads/catalog-index.json');
       if (indexBlob && indexBlob.downloadUrl) {
-        const res = await fetch(indexBlob.downloadUrl, { cache: 'no-store' });
+        const cacheBustedUrl = `${indexBlob.downloadUrl}?_t=${Date.now()}`;
+        const res = await fetch(cacheBustedUrl, { cache: 'no-store' });
         if (res.ok) {
           const remoteData: AdSummary[] = await res.json();
           await writeLocalIndex(remoteData);
@@ -184,7 +185,8 @@ export async function getAdById(id: string): Promise<Ad | null> {
       const { blobs } = await list({ prefix: `ads/${id}/`, limit: 5 });
       const adBlob = blobs.find(b => b.pathname.replace(/^\//, '') === `ads/${id}/ad.json`);
       if (adBlob && adBlob.downloadUrl) {
-        const res = await fetch(adBlob.downloadUrl, { cache: 'no-store' });
+        const cacheBustedUrl = `${adBlob.downloadUrl}?_t=${Date.now()}`;
+        const res = await fetch(cacheBustedUrl, { cache: 'no-store' });
         if (res.ok) {
           const remoteAd: Ad = await res.json();
           // Cache locally

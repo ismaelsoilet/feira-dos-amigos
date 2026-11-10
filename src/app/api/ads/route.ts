@@ -3,6 +3,9 @@ import { saveAd, getAds } from '@/lib/storage';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { AdCategory, AdPriceType, CreateAdInput } from '@/types/ad';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -26,7 +29,16 @@ export async function GET(request: Request) {
       query,
     });
 
-    return NextResponse.json({ ads, total: ads.length });
+    return NextResponse.json(
+      { ads, total: ads.length },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error fetching ads:', error);
     return NextResponse.json({ error: 'Erro ao carregar anúncios.' }, { status: 500 });

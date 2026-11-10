@@ -383,7 +383,7 @@ export function ClientAdDetails({ initialAd }: ClientAdDetailsProps) {
         }}
         onDeleted={() => {
           if (typeof window !== 'undefined') {
-            window.location.href = '/';
+            window.location.replace('/');
           }
         }}
       />

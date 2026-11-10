@@ -365,11 +365,20 @@ export function ManageAdModal({
         return;
       }
 
+      // Clean from localStorage immediately
+      try {
+        const saved = JSON.parse(localStorage.getItem('feira_meus_anuncios') || '[]');
+        const updated = saved.filter((item: { id: string }) => item.id !== adId);
+        localStorage.setItem('feira_meus_anuncios', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('localStorage cleanup error on delete:', e);
+      }
+
       setSuccessMessage('Anúncio excluído com sucesso.');
       if (onDeleted) {
         onDeleted();
       }
-      setTimeout(() => onClose(), 1200);
+      setTimeout(() => onClose(), 600);
     } catch (err) {
       console.error('Delete error:', err);
       setErrorMessage('Erro de conexão ao excluir anúncio.');

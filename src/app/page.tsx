@@ -33,7 +33,12 @@ export default function HomePage() {
   const fetchAds = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/ads?includeSold=true`);
+      const res = await fetch(`/api/ads?includeSold=true&_t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store',
+        },
+      });
       if (res.ok) {
         const data = await res.json();
         setAds(data.ads || []);
@@ -375,6 +380,7 @@ export default function HomePage() {
           }}
           onDeleted={() => {
             setAds(prev => prev.filter(a => a.id !== selectedAdForManage.id));
+            setSelectedAdForManage(null);
           }}
         />
       )}
