@@ -20,10 +20,12 @@ export function formatPrice(price: number, type: AdPriceType): string {
   return formatted.replace(/\u00a0/g, ' ');
 }
 
-export function buildWhatsAppLink(ad: AdSummary): string {
+export function buildWhatsAppLink(ad: AdSummary | { id: string; title: string; sellerName: string; whatsapp: string; price: number; priceType: AdPriceType }): string {
   const cleanPhone = ad.whatsapp.replace(/\D/g, '');
   const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
-  const text = `Olá, ${ad.sellerName}! Vi seu anúncio "${ad.title}" na Feira dos Amigos (Peruíbe) e gostaria de mais informações!`;
+  const shareUrl = getAdShareUrl(ad.id);
+  const priceDisplay = formatPrice(ad.price, ad.priceType);
+  const text = `Olá, ${ad.sellerName}! Vi seu anúncio "${ad.title}" (${priceDisplay}) na Feira dos Amigos Peruíbe.\n\nLink do anúncio: ${shareUrl}\n\nAinda está disponível?`;
   return `https://wa.me/${fullPhone}?text=${encodeURIComponent(text)}`;
 }
 

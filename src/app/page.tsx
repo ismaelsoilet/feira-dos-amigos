@@ -366,6 +366,8 @@ export default function HomePage() {
                       bairro: updatedAd.bairro,
                       sellerName: updatedAd.sellerName,
                       whatsapp: updatedAd.whatsapp,
+                      thumbnail: updatedAd.photos && updatedAd.photos.length > 0 ? updatedAd.photos[0] : '/logo.jpg',
+                      photosCount: updatedAd.photos ? updatedAd.photos.length : 1,
                     }
                   : a
               )

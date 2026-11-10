@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import {
   X,
   ShieldAlert,
@@ -15,9 +16,12 @@ import {
   KeyRound,
   Lock,
   Unlock,
+  Camera,
+  Star,
+  Plus,
 } from 'lucide-react';
 import { Ad, AdStatus, AdPriceType, AdCategory, AD_CATEGORIES, PERUIBE_BAIRROS } from '@/types/ad';
-import { formatPhoneInput, validateAdForm } from '@/lib/compress-image';
+import { formatPhoneInput, validateAdForm, compressImage } from '@/lib/compress-image';
 
 interface ManageAdModalProps {
   isOpen: boolean;
@@ -62,6 +66,8 @@ export function ManageAdModal({
   const [bairro, setBairro] = useState(initialAd?.bairro || 'Centro');
   const [sellerName, setSellerName] = useState(initialAd?.sellerName || '');
   const [whatsapp, setWhatsapp] = useState(initialAd?.whatsapp || '');
+  const [photos, setPhotos] = useState<string[]>(initialAd?.photos || []);
+  const [isCompressing, setIsCompressing] = useState(false);
 
   // Reset & load on open
   useEffect(() => {
@@ -76,6 +82,10 @@ export function ManageAdModal({
     setErrorMessage('');
     setSuccessMessage('');
     setFieldErrors({});
+
+    if (initialAd?.photos && initialAd.photos.length > 0) {
+      setPhotos(initialAd.photos);
+    }
 
     // Try finding saved PIN from localStorage
     let savedPin = initialPin;
@@ -108,12 +118,54 @@ export function ManageAdModal({
           setBairro(a.bairro || 'Centro');
           setSellerName(a.sellerName || '');
           setWhatsapp(formatPhoneInput(a.whatsapp || ''));
+          if (a.photos && Array.isArray(a.photos)) {
+            setPhotos(a.photos);
+          }
         }
       })
       .catch(err => console.warn('Error pre-loading ad details:', err));
-  }, [isOpen, adId, initialPin]);
+  }, [isOpen, adId, initialPin, initialAd]);
 
   if (!isOpen) return null;
+
+  // Photo handlers
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const files = Array.from(e.target.files);
+    if (photos.length + files.length > 5) {
+      setErrorMessage('Você pode manter no máximo 5 fotos no anúncio.');
+      return;
+    }
+
+    setIsCompressing(true);
+    setErrorMessage('');
+    try {
+      const compressedList: string[] = [];
+      for (const file of files) {
+        const compressed = await compressImage(file, 1200, 0.75);
+        if (compressed) compressedList.push(compressed);
+      }
+      setPhotos(prev => [...prev, ...compressedList]);
+    } catch (err) {
+      console.error(err);
+      setErrorMessage('Erro ao comprimir fotos. Tente novamente.');
+    } finally {
+      setIsCompressing(false);
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const setPrimaryPhoto = (index: number) => {
+    if (index === 0) return;
+    setPhotos(prev => {
+      const copy = [...prev];
+      const [item] = copy.splice(index, 1);
+      return [item, ...copy];
+    });
+  };
 
   // Step 1: Verify PIN to unlock editing
   const handleVerifyPinToUnlock = async (e: React.FormEvent) => {
@@ -153,6 +205,9 @@ export function ManageAdModal({
         setBairro(a.bairro || 'Centro');
         setSellerName(a.sellerName || '');
         setWhatsapp(formatPhoneInput(a.whatsapp || ''));
+        if (a.photos && Array.isArray(a.photos)) {
+          setPhotos(a.photos);
+        }
       }
 
       setIsUnlocked(true);
@@ -215,6 +270,7 @@ export function ManageAdModal({
           bairro: bairro.trim(),
           sellerName: sellerName.trim(),
           whatsapp: whatsapp.replace(/\D/g, ''),
+          photos: photos.length > 0 ? photos : ['/logo.jpg'],
         }),
       });
 
@@ -470,6 +526,87 @@ export function ManageAdModal({
                   >
                     Trocar PIN
                   </button>
+                </div>
+
+                {/* Photos Management Section */}
+                <div className="space-y-2 p-3 bg-purple-50/40 rounded-2xl border border-purple-100">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-slate-800">
+                      Fotos do Anúncio ({photos.length}/5)
+                    </label>
+                    <span className="text-[11px] text-purple-700 font-semibold">
+                      A 1ª foto é a capa principal
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                    {photos.map((src, idx) => (
+                      <div
+                        key={idx}
+                        className="relative group aspect-square rounded-xl overflow-hidden border border-purple-200 bg-white shadow-sm"
+                      >
+                        <Image
+                          src={src}
+                          alt={`Foto ${idx + 1}`}
+                          fill
+                          unoptimized={src.startsWith('data:')}
+                          className="object-cover"
+                        />
+                        {idx === 0 && (
+                          <span className="absolute top-1 left-1 bg-purple-700 text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow-sm z-10">
+                            Capa
+                          </span>
+                        )}
+                        <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 p-1 z-20">
+                          {idx !== 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setPrimaryPhoto(idx)}
+                              className="text-[9px] bg-purple-600 hover:bg-purple-700 text-white font-bold px-1.5 py-0.5 rounded shadow w-full text-center"
+                            >
+                              Virar Capa
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removePhoto(idx)}
+                            className="p-1 bg-rose-600 hover:bg-rose-700 text-white rounded-md transition-colors shadow"
+                            title="Excluir foto"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {photos.length < 5 && (
+                      <label className="aspect-square rounded-xl border-2 border-dashed border-purple-200 hover:border-purple-600 bg-white hover:bg-purple-50/50 flex flex-col items-center justify-center cursor-pointer transition-colors p-1 text-center group">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handlePhotoUpload}
+                          disabled={isCompressing}
+                          className="hidden"
+                        />
+                        {isCompressing ? (
+                          <Loader2 className="w-5 h-5 text-purple-600 animate-spin" />
+                        ) : (
+                          <>
+                            <Camera className="w-5 h-5 text-purple-600 group-hover:scale-110 transition-transform mb-1" />
+                            <span className="text-[10px] font-bold text-purple-950">
+                              {photos.length === 0 ? 'Adicionar' : 'Incluir'}
+                            </span>
+                          </>
+                        )}
+                      </label>
+                    )}
+                  </div>
+                  {photos.length === 0 && (
+                    <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">
+                      ⚠️ Nenhuma foto selecionada. O logo oficial da Feira dos Amigos será utilizado como capa.
+                    </p>
+                  )}
                 </div>
 
                 {/* Title */}

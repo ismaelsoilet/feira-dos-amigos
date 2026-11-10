@@ -386,7 +386,9 @@ export async function updateAd(
   if (input.sellerName !== undefined) ad.sellerName = input.sellerName.trim();
   if (input.whatsapp !== undefined) ad.whatsapp = input.whatsapp.replace(/\D/g, '');
   if (input.phone !== undefined) ad.phone = input.phone ? input.phone.replace(/\D/g, '') : undefined;
-  if (input.photos !== undefined && input.photos.length > 0) ad.photos = input.photos;
+  if (input.photos !== undefined) {
+    ad.photos = input.photos.length > 0 ? input.photos : ['/logo.jpg'];
+  }
   if (input.status !== undefined) ad.status = input.status;
   ad.updatedAt = now;
 

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { getAdById } from '@/lib/storage';
+import { formatPrice } from '@/components/AdCard';
 import { ClientAdDetails } from './ClientAdDetails';
 
 export async function generateMetadata({
@@ -14,15 +15,44 @@ export async function generateMetadata({
   const { id } = await params;
   const ad = await getAdById(id);
   if (!ad) {
-    return { title: 'Anúncio não encontrado | Feira dos Amigos' };
+    return {
+      title: 'Anúncio não encontrado | Feira dos Amigos Peruíbe',
+      description: 'Este anúncio pode ter sido vendido ou removido da feira.',
+    };
   }
+
+  const priceText = formatPrice(ad.price, ad.priceType);
+  const title = `${ad.title} — ${priceText} | Feira dos Amigos Peruíbe`;
+  const description = `${priceText} • Bairro ${ad.bairro} (Peruíbe) • Vendedor: ${ad.sellerName}. ${ad.description}`.slice(0, 190);
+  const siteUrl = 'https://feiradosamigos.vercel.app';
+  const shareUrl = `${siteUrl}/anuncio/${ad.id}`;
+  const imageUrl = `${siteUrl}/api/ads/${ad.id}/image`;
+
   return {
-    title: `${ad.title} | Feira dos Amigos Peruíbe`,
-    description: ad.description.slice(0, 160),
+    metadataBase: new URL(siteUrl),
+    title,
+    description,
     openGraph: {
-      title: `${ad.title} - R$ ${ad.price} em Peruíbe`,
-      description: ad.description,
-      images: [ad.photos[0] || '/logo.jpg'],
+      title,
+      description,
+      url: shareUrl,
+      siteName: 'Feira dos Amigos - Peruíbe',
+      locale: 'pt_BR',
+      type: 'website',
+      images: [
+        {
+          url: imageUrl,
+          width: 800,
+          height: 800,
+          alt: ad.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [imageUrl],
     },
   };
 }
